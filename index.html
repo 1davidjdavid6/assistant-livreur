@@ -7,221 +7,29 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#1E2229;
-    --surface:#262B33;
-    --surface-2:#2E343D;
-    --border:#3A414B;
-    --text:#F2F0EA;
-    --text-muted:#9AA3AD;
-    --accent:#C7D92C;
-
-    --idle-bg:#262B33;
-    --idle-fg:#9AA3AD;
-    --ok-bg:#1F3A2C;
-    --ok-fg:#5FBE85;
-    --maybe-bg:#3A2C1A;
-    --maybe-fg:#E8A659;
-    --no-bg:#3A2220;
-    --no-fg:#E2685C;
-  }
-
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:'Work Sans', sans-serif;
-    line-height:1.45;
-    -webkit-font-smoothing:antialiased;
-  }
-
-  .app{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
-
-  .topbar{padding:4px 4px 22px;}
-  .topbar h1{
-    font-family:'Barlow Condensed', sans-serif;
-    font-weight:700;
-    font-size:clamp(28px,6vw,36px);
-    margin:0 0 4px;
-  }
-  .topbar .subtitle{margin:0;color:var(--text-muted);font-size:14px;}
-
-  .layout{display:flex;flex-direction:column;gap:20px;}
-  @media(min-width:860px){
-    .layout{display:grid;grid-template-columns:360px 1fr;align-items:start;}
-  }
-
-  /* Verdict bubble */
-  .verdict-panel{
-    position:sticky;
-    top:12px;
-    background:var(--idle-bg);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:22px 20px;
-    transition:background-color .25s ease, border-color .25s ease;
-    z-index:5;
-  }
-  .verdict-rate-big{
-    font-family:'Barlow Condensed',sans-serif;
-    font-weight:700;
-    font-size:clamp(38px,8vw,52px);
-    color:var(--text);
-    line-height:1;
-    margin:0 0 6px;
-  }
-  .verdict-subline{font-size:13.5px;color:var(--text-muted);margin:0;}
-
-  .verdict-panel.status-ok{background:var(--ok-bg);border-color:var(--ok-fg);}
-  .verdict-panel.status-maybe{background:var(--maybe-bg);border-color:var(--maybe-fg);}
-  .verdict-panel.status-no{background:var(--no-bg);border-color:var(--no-fg);}
-
-  .verdict-details{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
-  .verdict-details summary{cursor:pointer;font-size:13px;color:var(--text-muted);list-style:none;}
-  .verdict-details summary::-webkit-details-marker{display:none;}
-  .verdict-details summary::after{content:' ▾';}
-  .verdict-details[open] summary::after{content:' ▴';}
-  .verdict-details summary:focus-visible{outline:2px solid var(--accent);}
-
-  .verdict-status{
-    font-family:'Barlow Condensed',sans-serif;
-    font-weight:700;
-    font-size:26px;
-    color:var(--idle-fg);
-    margin:12px 0 8px;
-  }
-  .verdict-status.c-ok{color:var(--ok-fg);}
-  .verdict-status.c-maybe{color:var(--maybe-fg);}
-  .verdict-status.c-no{color:var(--no-fg);}
-
-  .verdict-reason{margin:0 0 14px;font-size:14.5px;color:var(--text);}
-  .verdict-notes{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:8px;}
-  .verdict-notes li{font-size:13px;color:var(--text-muted);}
-  .verdict-thresholds{font-size:12px;color:var(--text-muted);}
-
-  /* Form */
-  .field-group{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
-  .field-group h2{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:20px;margin:0 0 14px;}
-
-  .group-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;}
-  .group-header h2{margin:0;}
-  .counter{font-size:12px;color:var(--text-muted);}
-
-  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-
-  label{display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--text-muted);}
-
-  input[type=number], input[type=text]{
-    background:var(--surface-2);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:10px 12px;
-    color:var(--text);
-    font-size:16px;
-    font-family:'Work Sans',sans-serif;
-    width:100%;
-  }
-  input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
-
-  .radio-row{display:flex;gap:10px;flex-wrap:wrap;}
-  .radio-pill{
-    flex-direction:row;
-    align-items:center;
-    gap:8px;
-    background:var(--surface-2);
-    border:1px solid var(--border);
-    border-radius:999px;
-    padding:9px 14px;
-    font-size:14px;
-    color:var(--text);
-    cursor:pointer;
-  }
-  .radio-pill.active{border-color:var(--accent);color:var(--accent);}
-  .radio-pill input{accent-color:var(--accent);}
-
-  .hint{font-size:12.5px;color:var(--text-muted);margin:8px 0 0;}
-
-  .checkbox-row{
-    flex-direction:row;
-    align-items:center;
-    gap:10px;
-    font-size:14.5px;
-    color:var(--text);
-    padding:8px 0;
-    cursor:pointer;
-  }
-  .checkbox-row input{width:18px;height:18px;accent-color:var(--accent);flex:none;}
-
-  .sub-field{margin:2px 0 4px 28px;max-width:190px;}
-
-  /* Toggle switch */
-  .switch{position:relative;display:inline-block;width:42px;height:24px;flex:none;}
-  .switch input{opacity:0;width:0;height:0;position:absolute;}
-  .switch-track{position:absolute;inset:0;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;cursor:pointer;transition:background-color .2s ease,border-color .2s ease;}
-  .switch-track::before{content:'';position:absolute;left:2px;top:2px;width:18px;height:18px;background:var(--text-muted);border-radius:50%;transition:transform .2s ease, background-color .2s ease;}
-  .switch input:checked + .switch-track{background:rgba(199,217,44,0.2);border-color:var(--accent);}
-  .switch input:checked + .switch-track::before{transform:translateX(18px);background:var(--accent);}
-  .switch input:focus-visible + .switch-track{outline:2px solid var(--accent);outline-offset:2px;}
-
-  /* Offer rows */
-  .offer-row{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--surface-2);transition:border-color .2s ease;}
-  .offer-row.row-ok{border-color:var(--ok-fg);}
-  .offer-row.row-maybe{border-color:var(--maybe-fg);}
-  .offer-row.row-no{border-color:var(--no-fg);}
-  .offer-main{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;}
-  .offer-main input{background:var(--surface);}
-  .offer-remove{background:transparent;border:1px solid var(--border);color:var(--text-muted);width:38px;height:38px;border-radius:8px;font-size:18px;cursor:pointer;line-height:1;}
-  .offer-remove:hover{border-color:var(--no-fg);color:var(--no-fg);}
-  .offer-dom-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
-  .offer-dom-fields input{font-size:14px;padding:8px 10px;background:var(--surface);}
-  .offer-badge{margin-top:8px;font-size:12.5px;color:var(--text-muted);min-height:16px;}
-  .offer-badge.badge-ok{color:var(--ok-fg);}
-  .offer-badge.badge-maybe{color:var(--maybe-fg);}
-  .offer-badge.badge-no{color:var(--no-fg);}
-
-  .add-btn{width:100%;background:transparent;border:1px dashed var(--border);color:var(--text-muted);padding:10px;border-radius:8px;font-size:13.5px;cursor:pointer;margin-top:2px;}
-  .add-btn:disabled{opacity:.4;cursor:not-allowed;}
-  .add-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
-
-  #home-fields{margin-top:4px;}
-  #home-fields label{margin-bottom:8px;}
-
-  .reset-btn{
-    width:100%;
-    background:transparent;
-    border:1px solid var(--border);
-    color:var(--text-muted);
-    padding:12px;
-    border-radius:8px;
-    font-size:14px;
-    font-family:'Work Sans',sans-serif;
-    cursor:pointer;
-    margin-bottom:16px;
-  }
-  .reset-btn:hover{border-color:var(--text-muted);color:var(--text);}
-  .reset-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
-
-  details.info{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;}
-  details.info summary{cursor:pointer;font-size:14px;color:var(--text-muted);}
-  details.info summary:focus-visible{outline:2px solid var(--accent);}
-  details.info ul{margin:12px 0 0;padding-left:18px;font-size:13px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px;}
-
-  template{display:none;}
-
-  @media (prefers-reduced-motion: reduce){
-    .verdict-panel, .switch-track, .switch-track::before{transition:none;}
-  }
-</style>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div class="app">
   <header class="topbar">
-    <h1>Assistant Livreur</h1>
-    <p class="subtitle">Besançon · VAE · toutes plateformes</p>
+    <div class="topbar-row">
+      <div>
+        <h1>Assistant Livreur</h1>
+        <p class="subtitle">Besançon · VAE · toutes plateformes</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="hint" id="user-greeting"></span>
+        <button type="button" id="logout-btn" class="logout-link">Déconnexion</button>
+      </div>
+    </div>
   </header>
+
+  <section class="field-group" id="active-orders-section">
+    <h2>Commandes en cours</h2>
+    <p class="hint" id="active-orders-empty">Aucune commande en cours. Enregistre une course ci-dessous pour démarrer son chrono de 15 minutes.</p>
+    <div id="active-orders"></div>
+  </section>
 
   <div class="layout">
 
@@ -258,11 +66,12 @@
               <input type="number" class="offer-dom-apres" inputmode="decimal" step="0.1" min="0" placeholder="Km→dom après" aria-label="Distance vers le domicile après la livraison">
             </div>
             <div class="offer-badge" aria-live="polite"></div>
+            <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
           </div>
         </div>
 
         <button type="button" id="add-offer" class="add-btn">+ Ajouter une course simultanée</button>
-        <p class="hint">Une course reçue en même temps sur une autre appli ? Ajoute-la ici — la meilleure remonte automatiquement dans la bulle.</p>
+        <p class="hint">Une course reçue en même temps sur une autre appli ? Ajoute-la ici — la meilleure remonte automatiquement dans la bulle. "Enregistrer" la sauvegarde et démarre son suivi.</p>
       </section>
 
       <section class="field-group">
@@ -328,8 +137,9 @@
           <li>Après 4h de service : tous les seuils relevés de +0.25 €/km.</li>
           <li>Max 2 courses longues consécutives, sinon refus automatique.</li>
           <li>« PEUT-ÊTRE » : distance entre le seuil standard et 6 km, sans condition météo/fatigue active — cas non couvert par les règles.</li>
-          <li>Mode retour domicile : les distances vers le domicile sont des estimations que tu saisis toi-même, pas un calcul d'itinéraire réel. Elles ne changent jamais le seuil €/km, seulement quelle course est mise en avant.</li>
-          <li>La bulle du haut n'affiche que le prix par défaut ; ouvre « Détails » pour voir la justification complète.</li>
+          <li>Mode retour domicile : distances estimées par toi, pas un calcul d'itinéraire réel.</li>
+          <li>« Enregistrer cette course » sauvegarde la course en base et démarre son suivi (chrono 15 min) dans « Commandes en cours ».</li>
+          <li>Le bouton Pause du chrono est visuel uniquement : si tu recharges la page pendant une pause, le temps restant est recalculé comme si le chrono avait continué depuis le dernier « Démarrer ».</li>
         </ul>
       </details>
 
@@ -349,325 +159,13 @@
       <input type="number" class="offer-dom-apres" inputmode="decimal" step="0.1" min="0" placeholder="Km→dom après" aria-label="Distance vers le domicile après la livraison">
     </div>
     <div class="offer-badge" aria-live="polite"></div>
+    <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
   </div>
 </template>
 
-<script>
-  const $ = (id) => document.getElementById(id);
-  const MAX_OFFERS = 4;
-
-  const offersList = $('offers-list');
-  const template = $('offer-row-template');
-
-  function num(el, fallback){
-    if(!el) return fallback;
-    const v = parseFloat(el.value);
-    return isNaN(v) ? fallback : v;
-  }
-  function fmtEuro(n){ return n.toFixed(2); }
-  function fmtKm(n){ return n.toFixed(1); }
-
-  /* ---------- Période auto-detect ---------- */
-  function setPeriodeAuto(){
-    const now = new Date();
-    const mins = now.getHours()*60 + now.getMinutes();
-    const isPeak = (mins>=705 && mins<=840) || (mins>=1110 && mins<=1320);
-    if(isPeak){ $('periode-pointe').checked = true; } else { $('periode-creuse').checked = true; }
-    const hh = String(now.getHours()).padStart(2,'0');
-    const mm = String(now.getMinutes()).padStart(2,'0');
-    $('periode-auto').textContent = `Détecté automatiquement à ${hh}:${mm} — modifiable ci-dessus.`;
-    updatePillStates();
-  }
-  function updatePillStates(){
-    document.querySelectorAll('.radio-pill').forEach(p=>{
-      const input = p.querySelector('input');
-      p.classList.toggle('active', input.checked);
-    });
-  }
-
-  /* ---------- Core decision logic (per course) ---------- */
-  function evaluateCourse(prix, distance, cond){
-    const euroKm = prix/distance;
-    const baseMin = cond.periode==='pointe' ? 1.70 : 2.00;
-    const baseMaxDist = cond.periode==='pointe' ? 4.5 : 3.5;
-    const hasCapModifier = cond.pluie || cond.chaleur || cond.fatigue;
-
-    let weatherFatigueCap = Infinity;
-    let adjMin = baseMin;
-    const notes = [];
-
-    if(cond.pluie){
-      adjMin -= 0.20;
-      weatherFatigueCap = Math.min(weatherFatigueCap, 3.5);
-      notes.push('🌧️ Pluie : tarifs souvent majorés, seuil assoupli — distance limitée à 3.5 km.');
-    }
-    if(cond.fatigue){
-      adjMin += 0.30;
-      weatherFatigueCap = Math.min(weatherFatigueCap, 2.5);
-      notes.push('😓 Mode conservation : courses courtes et excellentes uniquement.');
-    }
-    if(cond.chaleur){
-      adjMin = Math.max(adjMin, 1.90);
-      weatherFatigueCap = Math.min(weatherFatigueCap, 3.0);
-      notes.push('🌡️ Forte chaleur : hydrate-toi — distance limitée à 3 km.');
-    }
-    if(cond.afterFour > 0){
-      notes.push('⏱️ +4h de service : tous les seuils relevés de 0.25 €/km.');
-    }
-
-    const effectiveMin = adjMin + cond.afterFour;
-    const effectiveMaxDist = Math.min(baseMaxDist, weatherFatigueCap);
-    const isLong = distance > 6;
-
-    let decision, reason;
-
-    if(isLong){
-      const longThreshold = 2.40 + cond.afterFour;
-      if(distance > weatherFatigueCap){
-        decision = 'REFUSER';
-        reason = `Distance (${fmtKm(distance)} km) au-delà du plafond météo/fatigue (${fmtKm(weatherFatigueCap)} km).`;
-      } else if(cond.nbLongues >= 2){
-        decision = 'REFUSER';
-        reason = '2 courses longues déjà enchaînées — pause ou course courte recommandée.';
-      } else if(euroKm >= longThreshold){
-        decision = 'ACCEPTER';
-        reason = `Course longue rentable (seuil ${fmtEuro(longThreshold)} €/km atteint).`;
-      } else {
-        decision = 'REFUSER';
-        reason = `Sous le seuil course longue requis (${fmtEuro(longThreshold)} €/km).`;
-      }
-    } else if(distance > effectiveMaxDist){
-      if(!hasCapModifier){
-        decision = 'PEUT-ÊTRE';
-        reason = `Entre le seuil standard (${fmtKm(baseMaxDist)} km) et le seuil course longue (6 km) — non couvert par les règles.`;
-      } else {
-        decision = 'REFUSER';
-        reason = `Distance (${fmtKm(distance)} km) au-delà du plafond ajusté (${fmtKm(effectiveMaxDist)} km).`;
-      }
-    } else {
-      if(euroKm >= effectiveMin){
-        decision = 'ACCEPTER';
-        reason = `Rentable : ${fmtEuro(euroKm)} €/km ≥ seuil ${fmtEuro(effectiveMin)} €/km.`;
-      } else {
-        decision = 'REFUSER';
-        reason = `Sous le seuil minimum (${fmtEuro(effectiveMin)} €/km).`;
-      }
-    }
-
-    return { decision, euroKm, reason, notes, effectiveMin, effectiveMaxDist, isLong };
-  }
-
-  /* ---------- Offer rows management ---------- */
-  function bindOfferRow(row){
-    row.querySelectorAll('input').forEach(inp=>{
-      inp.addEventListener('input', recalcAll);
-    });
-    row.querySelector('.offer-remove').addEventListener('click', ()=>{
-      if(offersList.children.length<=1) return;
-      row.remove();
-      updateOffersUI();
-      recalcAll();
-    });
-  }
-
-  function addOfferRow(){
-    if(offersList.children.length >= MAX_OFFERS) return;
-    const node = template.content.firstElementChild.cloneNode(true);
-    const homeActive = $('home-mode').checked;
-    node.querySelector('.offer-dom-fields').hidden = !homeActive;
-    offersList.appendChild(node);
-    bindOfferRow(node);
-    updateOffersUI();
-    recalcAll();
-  }
-
-  function updateOffersUI(){
-    const rows = [...offersList.children];
-    $('offers-counter').textContent = `${rows.length}/${MAX_OFFERS}`;
-    const addBtn = $('add-offer');
-    addBtn.disabled = rows.length >= MAX_OFFERS;
-    addBtn.textContent = rows.length >= MAX_OFFERS ? 'Maximum atteint (4)' : '+ Ajouter une course simultanée';
-    rows.forEach(r=>{
-      r.querySelector('.offer-remove').style.visibility = rows.length<=1 ? 'hidden' : 'visible';
-    });
-  }
-
-  /* ---------- Global conditions ---------- */
-  function readGlobalConditions(){
-    const periode = $('periode-pointe').checked ? 'pointe' : 'creuse';
-    const pluie = $('pluie').checked;
-    const tempVal = $('temperature').value === '' ? null : parseFloat($('temperature').value);
-    const chaleur = $('chaleur').checked || (tempVal !== null && !isNaN(tempVal) && tempVal > 28);
-    const fatigue = $('fatigue').checked;
-    const heuresService = num($('heures'), 0);
-    const afterFour = heuresService > 4 ? 0.25 : 0;
-    const nbLongues = num($('longues'), 0);
-    const evenement = $('evenement').checked;
-    const homeModeActive = $('home-mode').checked;
-    return { periode, pluie, chaleur, fatigue, heuresService, afterFour, nbLongues, evenement, homeModeActive };
-  }
-
-  /* ---------- Recalculate everything ---------- */
-  function recalcAll(){
-    const cond = readGlobalConditions();
-    const rows = [...offersList.children];
-    const results = [];
-
-    rows.forEach(row=>{
-      const prixEl = row.querySelector('.offer-prix');
-      const distEl = row.querySelector('.offer-distance');
-      const badgeEl = row.querySelector('.offer-badge');
-      const prix = num(prixEl, NaN);
-      const distance = num(distEl, NaN);
-
-      row.classList.remove('row-ok','row-maybe','row-no');
-
-      if(isNaN(prix) || isNaN(distance) || prix<=0 || distance<=0){
-        badgeEl.textContent = '';
-        badgeEl.className = 'offer-badge';
-        return;
-      }
-
-      const evalRes = evaluateCourse(prix, distance, cond);
-      let homeDelta = null;
-      if(cond.homeModeActive){
-        const domAvant = num(row.querySelector('.offer-dom-avant'), NaN);
-        const domApres = num(row.querySelector('.offer-dom-apres'), NaN);
-        if(!isNaN(domAvant) && !isNaN(domApres)){
-          homeDelta = domAvant - domApres;
-        }
-      }
-
-      const cls = evalRes.decision==='ACCEPTER' ? 'ok' : (evalRes.decision==='PEUT-ÊTRE' ? 'maybe' : 'no');
-      row.classList.add('row-'+cls);
-
-      let badgeTxt = `${evalRes.decision} · ${fmtEuro(evalRes.euroKm)} €/km`;
-      if(homeDelta !== null){
-        badgeTxt += homeDelta >= 0 ? ` · 🏠 rapproche de ${fmtKm(homeDelta)}km` : ` · ↗️ éloigne de ${fmtKm(Math.abs(homeDelta))}km`;
-      }
-      badgeEl.textContent = badgeTxt;
-      badgeEl.className = 'offer-badge badge-'+cls;
-
-      results.push({ evalRes, prix, distance, homeDelta, cls });
-    });
-
-    updateOffersUI();
-    renderTop(results, cond);
-  }
-
-  function renderTop(results, cond){
-    const panel = $('verdict-panel');
-    panel.classList.remove('status-ok','status-maybe','status-no');
-
-    if(results.length === 0){
-      $('verdict-rate-big').textContent = '— €/km';
-      $('verdict-subline').textContent = 'Renseigne au moins une course.';
-      $('verdict-status').textContent = 'EN ATTENTE';
-      $('verdict-status').className = 'verdict-status';
-      $('verdict-reason').textContent = '';
-      $('verdict-notes').innerHTML = '';
-      $('verdict-thresholds').textContent = '';
-      return;
-    }
-
-    let pool = results;
-    let homeFiltered = false;
-
-    if(cond.homeModeActive){
-      const eligible = results.filter(r => r.evalRes.decision !== 'REFUSER');
-      const homeward = eligible.filter(r => r.homeDelta !== null && r.homeDelta >= 0);
-      if(homeward.length > 0){ pool = homeward; homeFiltered = true; }
-      else if(eligible.length > 0){ pool = eligible; }
-    }
-
-    const rank = { 'ACCEPTER':0, 'PEUT-ÊTRE':1, 'REFUSER':2 };
-    pool = [...pool].sort((a,b)=>{
-      if(rank[a.evalRes.decision] !== rank[b.evalRes.decision]) return rank[a.evalRes.decision]-rank[b.evalRes.decision];
-      if(cond.homeModeActive && a.homeDelta !== null && b.homeDelta !== null && a.homeDelta !== b.homeDelta){
-        return b.homeDelta - a.homeDelta;
-      }
-      return b.evalRes.euroKm - a.evalRes.euroKm;
-    });
-
-    const best = pool[0];
-    panel.classList.add('status-'+best.cls);
-
-    $('verdict-rate-big').textContent = `${fmtEuro(best.evalRes.euroKm)} €/km`;
-
-    let subline = `${fmtEuro(best.prix)} € · ${fmtKm(best.distance)} km`;
-    if(results.length > 1) subline += ` · meilleure de ${results.length}`;
-    if(homeFiltered) subline += ' · 🏠 vers le domicile';
-    $('verdict-subline').textContent = subline;
-
-    $('verdict-status').textContent = best.evalRes.decision;
-    $('verdict-status').className = 'verdict-status c-'+best.cls;
-    $('verdict-reason').textContent = best.evalRes.reason;
-
-    $('verdict-notes').innerHTML = '';
-    const addNote = (txt) => { const li=document.createElement('li'); li.textContent=txt; $('verdict-notes').appendChild(li); };
-    best.evalRes.notes.forEach(addNote);
-    if(cond.evenement && best.evalRes.decision !== 'REFUSER'){
-      addNote('🎉 Événement local : reste dans la zone si le €/km suit.');
-    }
-    if(cond.homeModeActive && best.homeDelta !== null){
-      addNote(best.homeDelta >= 0
-        ? `🏠 Rapproche du domicile de ${fmtKm(best.homeDelta)} km.`
-        : `↗️ Éloigne du domicile de ${fmtKm(Math.abs(best.homeDelta))} km.`);
-    }
-    if(cond.homeModeActive && !homeFiltered && results.some(r => r.evalRes.decision !== 'REFUSER')){
-      addNote('⚠️ Aucune course ne rapproche du domicile pour l’instant.');
-    }
-
-    $('verdict-thresholds').textContent = `Seuil requis : ${fmtEuro(best.evalRes.effectiveMin)} €/km · Distance max : ${fmtKm(best.evalRes.effectiveMaxDist)} km`;
-  }
-
-  /* ---------- Wiring ---------- */
-  ['pluie','chaleur','fatigue','evenement'].forEach(id => $(id).addEventListener('change', recalcAll));
-  $('temperature').addEventListener('input', recalcAll);
-  $('heures').addEventListener('input', recalcAll);
-  $('longues').addEventListener('input', recalcAll);
-  document.querySelectorAll('input[name=periode]').forEach(r => r.addEventListener('change', ()=>{ updatePillStates(); recalcAll(); }));
-
-  $('home-mode').addEventListener('change', ()=>{
-    const active = $('home-mode').checked;
-    $('home-fields').hidden = !active;
-    document.querySelectorAll('.offer-dom-fields').forEach(el => el.hidden = !active);
-    recalcAll();
-  });
-
-  $('add-offer').addEventListener('click', addOfferRow);
-
-  $('reset').addEventListener('click', ()=>{
-    [...offersList.children].forEach((row, i)=>{
-      if(i > 0){ row.remove(); }
-      else {
-        row.querySelectorAll('input').forEach(inp => inp.value = '');
-        row.querySelector('.offer-badge').textContent = '';
-        row.classList.remove('row-ok','row-maybe','row-no');
-      }
-    });
-    $('pluie').checked = false;
-    $('chaleur').checked = false;
-    $('fatigue').checked = false;
-    $('evenement').checked = false;
-    $('temperature').value = '';
-    $('heures').value = '';
-    $('longues').value = '';
-    $('home-mode').checked = false;
-    $('home-fields').hidden = true;
-    $('home-label').value = '';
-    document.querySelectorAll('.offer-dom-fields').forEach(el => el.hidden = true);
-    setPeriodeAuto();
-    updateOffersUI();
-    recalcAll();
-  });
-
-  /* ---------- Init ---------- */
-  bindOfferRow(offersList.children[0]);
-  setPeriodeAuto();
-  updateOffersUI();
-  recalcAll();
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

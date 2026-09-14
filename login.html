@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Connexion — Assistant Livreur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Assistant Livreur</h1>
+    <p class="subtitle">Besançon · VAE · toutes plateformes</p>
+
+    <div class="auth-tabs">
+      <button type="button" id="tab-login" class="auth-tab active">Se connecter</button>
+      <button type="button" id="tab-signup" class="auth-tab">Créer un compte</button>
+    </div>
+
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-success" id="auth-success"></div>
+
+    <form id="auth-form">
+      <div class="auth-field" id="nom-field" hidden>
+        <label for="nom">Prénom
+          <input type="text" id="nom" autocomplete="name" placeholder="Ton prénom">
+        </label>
+      </div>
+      <div class="auth-field">
+        <label for="email">Email
+          <input type="email" id="email" autocomplete="email" required placeholder="toi@exemple.com">
+        </label>
+      </div>
+      <div class="auth-field">
+        <label for="password">Mot de passe
+          <input type="password" id="password" autocomplete="current-password" required minlength="6" placeholder="6 caractères minimum">
+        </label>
+      </div>
+      <button type="submit" id="auth-submit" class="auth-submit">Se connecter</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

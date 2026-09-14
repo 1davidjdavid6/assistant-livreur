@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Tableau de bord — Assistant Livreur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div>
+        <h1>Tableau de bord</h1>
+        <p class="subtitle" id="admin-greeting">Chargement…</p>
+      </div>
+      <button type="button" id="logout-btn" class="logout-link">Déconnexion</button>
+    </div>
+  </header>
+
+  <section class="field-group" id="access-denied" hidden>
+    <h2>Accès refusé</h2>
+    <p class="hint">Cette page est réservée aux comptes administrateur. <a href="index.html" style="color:var(--accent);">Retour à l'outil</a>.</p>
+  </section>
+
+  <div id="dashboard-content">
+    <section class="field-group">
+      <div class="group-header">
+        <h2><span class="realtime-dot"></span>Courses</h2>
+        <span class="counter" id="dash-count">0 course</span>
+      </div>
+
+      <div class="dash-toolbar">
+        <input type="text" id="search-input" placeholder="Rechercher un livreur…">
+        <select id="filter-statut">
+          <option value="tous">Tous les statuts</option>
+          <option value="en_attente">En attente</option>
+          <option value="en_cours">En cours</option>
+          <option value="livree">Livrée</option>
+          <option value="annulee">Annulée</option>
+        </select>
+        <select id="sort-select">
+          <option value="date_desc">Plus récentes d'abord</option>
+          <option value="date_asc">Plus anciennes d'abord</option>
+          <option value="euro_km_desc">€/km décroissant</option>
+          <option value="euro_km_asc">€/km croissant</option>
+        </select>
+      </div>
+
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Livreur</th>
+              <th>Prix</th>
+              <th>Distance</th>
+              <th>€/km</th>
+              <th>Décision</th>
+              <th>Statut</th>
+              <th>Créée le</th>
+            </tr>
+          </thead>
+          <tbody id="dash-tbody"></tbody>
+        </table>
+        <p class="dash-empty" id="dash-empty" hidden>Aucune course pour le moment.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
