@@ -4,6 +4,7 @@ let profilesMap = {};
 async function initDashboard(){
   const session = await requireSession();
   if(!session) return;
+  window.__dashboardUserId = session.user.id;
 
   const profile = await getMyProfile(session.user.id);
   if(!profile || profile.role !== 'admin'){
@@ -20,6 +21,7 @@ async function initDashboard(){
   await loadProfilesMap();
   await loadCourses();
   subscribeRealtime();
+  if(window.initEventsAdmin) window.initEventsAdmin();
 
   document.getElementById('search-input').addEventListener('input', renderTable);
   document.getElementById('filter-statut').addEventListener('change', renderTable);
@@ -61,7 +63,7 @@ function subscribeRealtime(){
 }
 
 function statutLabel(s){
-  return { en_attente:'En attente', en_cours:'En cours', livree:'Livrée', annulee:'Annulée' }[s] || s;
+  return { en_attente:'En attente', en_cours:'En cours', validee:'Validée', annulee:'Annulée' }[s] || s;
 }
 function formatDateTime(iso){
   return new Date(iso).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });

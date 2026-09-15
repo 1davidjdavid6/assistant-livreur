@@ -30,6 +30,38 @@
   <div id="dashboard-content">
     <section class="field-group">
       <div class="group-header">
+        <h2>Événements</h2>
+        <span class="counter" id="event-count">0 événement</span>
+      </div>
+
+      <form class="event-form" id="event-form">
+        <input type="hidden" id="event-id">
+        <label for="event-titre">Titre
+          <input type="text" id="event-titre" required placeholder="Ex : Festival Les Eurockéennes">
+        </label>
+        <label for="event-description">Description (optionnelle)
+          <textarea id="event-description" placeholder="Détails utiles pour les livreurs…"></textarea>
+        </label>
+        <div class="row-2">
+          <label for="event-debut">Début
+            <input type="datetime-local" id="event-debut" required>
+          </label>
+          <label for="event-fin">Fin
+            <input type="datetime-local" id="event-fin" required>
+          </label>
+        </div>
+        <div class="event-form-actions">
+          <button type="submit" class="save-btn" id="event-submit-btn" style="border-color:var(--accent);">Créer l'événement</button>
+          <button type="button" id="event-cancel-edit" class="reset-btn" style="display:none;margin:0;">Annuler la modification</button>
+        </div>
+      </form>
+
+      <div id="events-admin-list"></div>
+      <p class="hint" id="events-admin-empty">Aucun événement créé pour le moment.</p>
+    </section>
+
+    <section class="field-group">
+      <div class="group-header">
         <h2><span class="realtime-dot"></span>Courses</h2>
         <span class="counter" id="dash-count">0 course</span>
       </div>
@@ -40,7 +72,7 @@
           <option value="tous">Tous les statuts</option>
           <option value="en_attente">En attente</option>
           <option value="en_cours">En cours</option>
-          <option value="livree">Livrée</option>
+          <option value="validee">Validée</option>
           <option value="annulee">Annulée</option>
         </select>
         <select id="sort-select">
@@ -75,5 +107,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script src="js/dashboard.js"></script>
+<script src="js/events-admin.js"></script>
 </body>
 </html>

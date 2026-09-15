@@ -25,6 +25,12 @@
     </div>
   </header>
 
+  <section class="field-group" id="evenements-section">
+    <h2>Événements</h2>
+    <p class="hint" id="evenements-empty">Aucun événement à venir pour le moment.</p>
+    <div id="evenements-list"></div>
+  </section>
+
   <section class="field-group" id="active-orders-section">
     <h2>Commandes en cours</h2>
     <p class="hint" id="active-orders-empty">Aucune commande en cours. Enregistre une course ci-dessous pour démarrer son chrono de 15 minutes.</p>
@@ -60,10 +66,6 @@
               <input type="number" class="offer-prix" inputmode="decimal" step="0.01" min="0" placeholder="Prix €" aria-label="Prix de la course en euros">
               <input type="number" class="offer-distance" inputmode="decimal" step="0.1" min="0" placeholder="Distance km" aria-label="Distance de la course en kilomètres">
               <button type="button" class="offer-remove" aria-label="Supprimer cette course" style="visibility:hidden;">×</button>
-            </div>
-            <div class="offer-dom-fields" hidden>
-              <input type="number" class="offer-dom-avant" inputmode="decimal" step="0.1" min="0" placeholder="Km→dom avant" aria-label="Distance vers le domicile avant la livraison">
-              <input type="number" class="offer-dom-apres" inputmode="decimal" step="0.1" min="0" placeholder="Km→dom après" aria-label="Distance vers le domicile après la livraison">
             </div>
             <div class="offer-badge" aria-live="polite"></div>
             <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
@@ -106,22 +108,6 @@
         <label class="checkbox-row" style="margin-top:6px;"><input type="checkbox" id="evenement"> Événement local à proximité</label>
       </section>
 
-      <section class="field-group">
-        <div class="group-header">
-          <h2>Fin de service</h2>
-          <label class="switch">
-            <input type="checkbox" id="home-mode" aria-label="Activer le mode retour domicile">
-            <span class="switch-track"></span>
-          </label>
-        </div>
-        <div id="home-fields" hidden>
-          <label for="home-label">Repère domicile (optionnel)
-            <input type="text" id="home-label" placeholder="Ex : quartier Saint-Jean">
-          </label>
-          <p class="hint">Pour chaque course, renseigne les deux champs « Km → dom » qui apparaissent (distance estimée vers ton domicile avant et après la livraison). La course qui te rapproche le plus est mise en avant ; l'outil ne calcule pas d'itinéraire réel, c'est à toi d'estimer ces distances.</p>
-        </div>
-      </section>
-
       <button type="button" id="reset" class="reset-btn">Réinitialiser</button>
 
       <details class="info">
@@ -137,9 +123,10 @@
           <li>Après 4h de service : tous les seuils relevés de +0.25 €/km.</li>
           <li>Max 2 courses longues consécutives, sinon refus automatique.</li>
           <li>« PEUT-ÊTRE » : distance entre le seuil standard et 6 km, sans condition météo/fatigue active — cas non couvert par les règles.</li>
-          <li>Mode retour domicile : distances estimées par toi, pas un calcul d'itinéraire réel.</li>
           <li>« Enregistrer cette course » sauvegarde la course en base et démarre son suivi (chrono 15 min) dans « Commandes en cours ».</li>
           <li>Le bouton Pause du chrono est visuel uniquement : si tu recharges la page pendant une pause, le temps restant est recalculé comme si le chrono avait continué depuis le dernier « Démarrer ».</li>
+          <li>Une fois une course marquée « Validée », le formulaire « Courses en attente » se réinitialise automatiquement pour la suivante.</li>
+          <li>La rubrique Événements est en lecture seule ici : seul l'administrateur peut créer, modifier ou supprimer un événement (depuis le tableau de bord).</li>
         </ul>
       </details>
 
@@ -153,10 +140,6 @@
       <input type="number" class="offer-prix" inputmode="decimal" step="0.01" min="0" placeholder="Prix €" aria-label="Prix de la course en euros">
       <input type="number" class="offer-distance" inputmode="decimal" step="0.1" min="0" placeholder="Distance km" aria-label="Distance de la course en kilomètres">
       <button type="button" class="offer-remove" aria-label="Supprimer cette course">×</button>
-    </div>
-    <div class="offer-dom-fields" hidden>
-      <input type="number" class="offer-dom-avant" inputmode="decimal" step="0.1" min="0" placeholder="Km→dom avant" aria-label="Distance vers le domicile avant la livraison">
-      <input type="number" class="offer-dom-apres" inputmode="decimal" step="0.1" min="0" placeholder="Km→dom après" aria-label="Distance vers le domicile après la livraison">
     </div>
     <div class="offer-badge" aria-live="polite"></div>
     <button type="button" class="save-btn" disabled>Enregistrer cette course</button>

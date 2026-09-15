@@ -28,6 +28,73 @@ async function initAuth(){
     : currentSession.user.email;
   $('logout-btn').addEventListener('click', logout);
   loadActiveOrders();
+  loadEvenements();
+  subscribeEvenementsRealtime();
+}
+
+/* ============================================================
+   Événements (lecture seule ici — gestion réservée à l'admin
+   dans le tableau de bord)
+   ============================================================ */
+let allEvenements = [];
+
+async function loadEvenements(){
+  const { data, error } = await supabaseClient
+    .from('evenements')
+    .select('*')
+    .order('date_debut', { ascending: true });
+  if(error){ console.error('Erreur événements :', error); return; }
+  allEvenements = data || [];
+  renderEvenements();
+}
+
+function subscribeEvenementsRealtime(){
+  supabaseClient
+    .channel('evenements-livreur')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'evenements' }, () => {
+      loadEvenements();
+    })
+    .subscribe();
+}
+
+function formatEventDate(iso){
+  return new Date(iso).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderEvenements(){
+  const now = Date.now();
+  const upcoming = allEvenements.filter(e => new Date(e.date_fin).getTime() >= now);
+  upcoming.sort((a,b)=>{
+    const aLive = new Date(a.date_debut) <= new Date() && new Date() <= new Date(a.date_fin);
+    const bLive = new Date(b.date_debut) <= new Date() && new Date() <= new Date(b.date_fin);
+    if(aLive !== bLive) return aLive ? -1 : 1;
+    return new Date(a.date_debut) - new Date(b.date_debut);
+  });
+
+  const container = $('evenements-list');
+  container.innerHTML = '';
+  $('evenements-empty').hidden = upcoming.length > 0;
+
+  upcoming.forEach(ev => {
+    const isLive = new Date(ev.date_debut).getTime() <= now && now <= new Date(ev.date_fin).getTime();
+    const card = document.createElement('div');
+    card.className = 'event-card' + (isLive ? ' event-live' : '');
+    card.innerHTML = `
+      <div class="active-order-head">
+        <span class="meta">${formatEventDate(ev.date_debut)} → ${formatEventDate(ev.date_fin)}</span>
+        <span class="badge-pill ${isLive ? 'st-en_cours' : 'st-en_attente'}">${isLive ? 'EN COURS' : 'À VENIR'}</span>
+      </div>
+      <div class="event-title">${escapeHtmlLocal(ev.titre)}</div>
+      ${ev.description ? `<p class="event-desc">${escapeHtmlLocal(ev.description)}</p>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function escapeHtmlLocal(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
 }
 
 /* ============================================================
@@ -143,8 +210,6 @@ function bindOfferRow(row){
 function addOfferRow(){
   if(offersList.children.length >= MAX_OFFERS) return;
   const node = template.content.firstElementChild.cloneNode(true);
-  const homeActive = $('home-mode').checked;
-  node.querySelector('.offer-dom-fields').hidden = !homeActive;
   offersList.appendChild(node);
   bindOfferRow(node);
   updateOffersUI();
@@ -172,8 +237,7 @@ function readGlobalConditions(){
   const afterFour = heuresService > 4 ? 0.25 : 0;
   const nbLongues = num($('longues'), 0);
   const evenement = $('evenement').checked;
-  const homeModeActive = $('home-mode').checked;
-  return { periode, pluie, chaleur, fatigue, heuresService, afterFour, nbLongues, evenement, homeModeActive };
+  return { periode, pluie, chaleur, fatigue, heuresService, afterFour, nbLongues, evenement };
 }
 
 function recalcAll(){
@@ -199,27 +263,15 @@ function recalcAll(){
     }
 
     const evalRes = evaluateCourse(prix, distance, cond);
-    let homeDelta = null;
-    if(cond.homeModeActive){
-      const domAvant = num(row.querySelector('.offer-dom-avant'), NaN);
-      const domApres = num(row.querySelector('.offer-dom-apres'), NaN);
-      if(!isNaN(domAvant) && !isNaN(domApres)){
-        homeDelta = domAvant - domApres;
-      }
-    }
 
     const cls = evalRes.decision==='ACCEPTER' ? 'ok' : (evalRes.decision==='PEUT-ÊTRE' ? 'maybe' : 'no');
     row.classList.add('row-'+cls);
     saveBtn.disabled = false;
 
-    let badgeTxt = `${evalRes.decision} · ${fmtEuro(evalRes.euroKm)} €/km`;
-    if(homeDelta !== null){
-      badgeTxt += homeDelta >= 0 ? ` · 🏠 rapproche de ${fmtKm(homeDelta)}km` : ` · ↗️ éloigne de ${fmtKm(Math.abs(homeDelta))}km`;
-    }
-    badgeEl.textContent = badgeTxt;
+    badgeEl.textContent = `${evalRes.decision} · ${fmtEuro(evalRes.euroKm)} €/km`;
     badgeEl.className = 'offer-badge badge-'+cls;
 
-    results.push({ evalRes, prix, distance, homeDelta, cls });
+    results.push({ evalRes, prix, distance, cls });
   });
 
   updateOffersUI();
@@ -241,22 +293,9 @@ function renderTop(results, cond){
     return;
   }
 
-  let pool = results;
-  let homeFiltered = false;
-
-  if(cond.homeModeActive){
-    const eligible = results.filter(r => r.evalRes.decision !== 'REFUSER');
-    const homeward = eligible.filter(r => r.homeDelta !== null && r.homeDelta >= 0);
-    if(homeward.length > 0){ pool = homeward; homeFiltered = true; }
-    else if(eligible.length > 0){ pool = eligible; }
-  }
-
   const rank = { 'ACCEPTER':0, 'PEUT-ÊTRE':1, 'REFUSER':2 };
-  pool = [...pool].sort((a,b)=>{
+  const pool = [...results].sort((a,b)=>{
     if(rank[a.evalRes.decision] !== rank[b.evalRes.decision]) return rank[a.evalRes.decision]-rank[b.evalRes.decision];
-    if(cond.homeModeActive && a.homeDelta !== null && b.homeDelta !== null && a.homeDelta !== b.homeDelta){
-      return b.homeDelta - a.homeDelta;
-    }
     return b.evalRes.euroKm - a.evalRes.euroKm;
   });
 
@@ -267,7 +306,6 @@ function renderTop(results, cond){
 
   let subline = `${fmtEuro(best.prix)} € · ${fmtKm(best.distance)} km`;
   if(results.length > 1) subline += ` · meilleure de ${results.length}`;
-  if(homeFiltered) subline += ' · 🏠 vers le domicile';
   $('verdict-subline').textContent = subline;
 
   $('verdict-status').textContent = best.evalRes.decision;
@@ -280,14 +318,6 @@ function renderTop(results, cond){
   if(cond.evenement && best.evalRes.decision !== 'REFUSER'){
     addNote('🎉 Événement local : reste dans la zone si le €/km suit.');
   }
-  if(cond.homeModeActive && best.homeDelta !== null){
-    addNote(best.homeDelta >= 0
-      ? `🏠 Rapproche du domicile de ${fmtKm(best.homeDelta)} km.`
-      : `↗️ Éloigne du domicile de ${fmtKm(Math.abs(best.homeDelta))} km.`);
-  }
-  if(cond.homeModeActive && !homeFiltered && results.some(r => r.evalRes.decision !== 'REFUSER')){
-    addNote('⚠️ Aucune course ne rapproche du domicile pour l’instant.');
-  }
 
   $('verdict-thresholds').textContent = `Seuil requis : ${fmtEuro(best.evalRes.effectiveMin)} €/km · Distance max : ${fmtKm(best.evalRes.effectiveMaxDist)} km`;
 }
@@ -295,6 +325,25 @@ function renderTop(results, cond){
 /* ============================================================
    Sauvegarde d'une course + suivi (commandes en cours + chrono)
    ============================================================ */
+/* ============================================================
+   Réinitialisation du formulaire "Courses en attente"
+   (bouton manuel + déclenchement automatique après validation)
+   ============================================================ */
+function resetOfferForm(){
+  [...offersList.children].forEach((row, i)=>{
+    if(i > 0){ row.remove(); }
+    else {
+      row.querySelectorAll('input').forEach(inp => inp.value = '');
+      row.querySelector('.offer-badge').textContent = '';
+      row.querySelector('.offer-badge').className = 'offer-badge';
+      row.querySelector('.save-btn').disabled = true;
+      row.classList.remove('row-ok','row-maybe','row-no');
+    }
+  });
+  updateOffersUI();
+  recalcAll();
+}
+
 async function handleSaveOffer(row){
   const cond = readGlobalConditions();
   const prix = num(row.querySelector('.offer-prix'), NaN);
@@ -369,7 +418,7 @@ function addActiveOrderCard(order){
       <button type="button" data-action="reset">Réinitialiser</button>
     </div>
     <div class="order-actions">
-      <button type="button" class="btn-livree" data-action="livree">Marquer livrée</button>
+      <button type="button" class="btn-validee" data-action="valider">Marquer validée</button>
       <button type="button" class="btn-annuler" data-action="annuler">Annuler</button>
     </div>
   `;
@@ -409,12 +458,13 @@ function addActiveOrderCard(order){
     await supabaseClient.from('courses').update({ timer_started_at: null }).eq('id', order.id);
     timer.reset(order.timer_duration_seconds);
   });
-  card.querySelector('[data-action="livree"]').addEventListener('click', async () => {
-    await supabaseClient.from('courses').update({ statut: 'livree' }).eq('id', order.id);
+  card.querySelector('[data-action="valider"]').addEventListener('click', async () => {
+    await supabaseClient.from('courses').update({ statut: 'validee' }).eq('id', order.id);
     timer.pause();
     delete activeTimers[order.id];
     card.remove();
     toggleActiveOrdersEmpty();
+    resetOfferForm();
   });
   card.querySelector('[data-action="annuler"]').addEventListener('click', async () => {
     await supabaseClient.from('courses').update({ statut: 'annulee' }).eq('id', order.id);
@@ -434,24 +484,9 @@ $('heures').addEventListener('input', recalcAll);
 $('longues').addEventListener('input', recalcAll);
 document.querySelectorAll('input[name=periode]').forEach(r => r.addEventListener('change', ()=>{ updatePillStates(); recalcAll(); }));
 
-$('home-mode').addEventListener('change', ()=>{
-  const active = $('home-mode').checked;
-  $('home-fields').hidden = !active;
-  document.querySelectorAll('.offer-dom-fields').forEach(el => el.hidden = !active);
-  recalcAll();
-});
-
 $('add-offer').addEventListener('click', addOfferRow);
 
 $('reset').addEventListener('click', ()=>{
-  [...offersList.children].forEach((row, i)=>{
-    if(i > 0){ row.remove(); }
-    else {
-      row.querySelectorAll('input').forEach(inp => inp.value = '');
-      row.querySelector('.offer-badge').textContent = '';
-      row.classList.remove('row-ok','row-maybe','row-no');
-    }
-  });
   $('pluie').checked = false;
   $('chaleur').checked = false;
   $('fatigue').checked = false;
@@ -459,13 +494,8 @@ $('reset').addEventListener('click', ()=>{
   $('temperature').value = '';
   $('heures').value = '';
   $('longues').value = '';
-  $('home-mode').checked = false;
-  $('home-fields').hidden = true;
-  $('home-label').value = '';
-  document.querySelectorAll('.offer-dom-fields').forEach(el => el.hidden = true);
   setPeriodeAuto();
-  updateOffersUI();
-  recalcAll();
+  resetOfferForm();
 });
 
 /* ============================================================
