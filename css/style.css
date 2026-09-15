@@ -298,3 +298,68 @@ table.dash-table tr:last-child td{border-bottom:none;}
 .event-list-item .event-actions button{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-size:12.5px;cursor:pointer;font-family:'Work Sans',sans-serif;}
 .event-list-item .event-actions button:hover{border-color:var(--accent);color:var(--accent);}
 .event-list-item .event-actions button.danger:hover{border-color:var(--no-fg);color:var(--no-fg);}
+
+/* Historique */
+.history-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;background:var(--surface-2);}
+.history-item .active-order-head{margin-bottom:4px;}
+.history-item .meta{font-size:12.5px;color:var(--text-muted);}
+
+/* ============================================================
+   Navigation par onglets (bottom nav mobile)
+   ============================================================ */
+.app-with-nav{padding-bottom:90px;}
+.tab-panel{animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+.bottom-nav{
+  position:fixed;
+  bottom:0; left:0; right:0;
+  display:flex;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  z-index:20;
+}
+.nav-btn{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  background:none;
+  border:none;
+  color:var(--text-muted);
+  font-family:'Work Sans',sans-serif;
+  font-size:11px;
+  padding:6px 2px;
+  cursor:pointer;
+  border-radius:8px;
+}
+.nav-btn .nav-icon{font-size:20px;line-height:1;}
+.nav-btn.active{color:var(--accent);}
+
+/* Bannière événement en cours (au-dessus des onglets) */
+.live-event-banner{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--surface-2);
+  border:1px solid var(--accent);
+  border-radius:10px;
+  padding:10px 14px;
+  margin-bottom:16px;
+  font-size:13.5px;
+  cursor:pointer;
+}
+.live-event-banner .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;animation:pulse 2s infinite;}
+
+/* Service / shift */
+.shift-box{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.shift-status{font-size:13.5px;color:var(--text-muted);}
+
+/* Historique */
+.historique-item{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;background:var(--surface-2);font-size:13.5px;}
+.historique-item .meta{color:var(--text-muted);font-size:12.5px;}
+
+/* Profil */
+#tab-profil .field-group{max-width:420px;}

@@ -29,7 +29,7 @@ async function requireSession(){
 async function getMyProfile(userId){
   const { data, error } = await supabaseClient
     .from('profiles')
-    .select('id, role, nom')
+    .select('id, role, nom, shift_started_at')
     .eq('id', userId)
     .single();
   if(error){ console.error('Erreur profil :', error); return null; }

@@ -11,128 +11,187 @@
 </head>
 <body>
 
-<div class="app">
+<div class="app app-with-nav">
   <header class="topbar">
-    <div class="topbar-row">
-      <div>
-        <h1>Assistant Livreur</h1>
-        <p class="subtitle">Besançon · VAE · toutes plateformes</p>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span class="hint" id="user-greeting"></span>
-        <button type="button" id="logout-btn" class="logout-link">Déconnexion</button>
-      </div>
-    </div>
+    <h1>Assistant Livreur</h1>
+    <p class="subtitle">Besançon · VAE · toutes plateformes</p>
   </header>
 
-  <section class="field-group" id="evenements-section">
-    <h2>Événements</h2>
-    <p class="hint" id="evenements-empty">Aucun événement à venir pour le moment.</p>
-    <div id="evenements-list"></div>
-  </section>
+  <div id="live-event-banner" class="live-event-banner" hidden></div>
 
-  <section class="field-group" id="active-orders-section">
-    <h2>Commandes en cours</h2>
-    <p class="hint" id="active-orders-empty">Aucune commande en cours. Enregistre une course ci-dessous pour démarrer son chrono de 15 minutes.</p>
-    <div id="active-orders"></div>
-  </section>
+  <!-- ============================================================
+       ONGLET : LIVRAISON
+       ============================================================ -->
+  <div id="tab-livraison" class="tab-panel">
 
-  <div class="layout">
+    <section class="field-group" id="active-orders-section">
+      <h2>Commandes en cours</h2>
+      <p class="hint" id="active-orders-empty">Aucune commande en cours. Enregistre une course ci-dessous pour démarrer son chrono de 15 minutes.</p>
+      <div id="active-orders"></div>
+    </section>
 
-    <aside class="verdict-panel" id="verdict-panel">
-      <div class="verdict-rate-big" id="verdict-rate-big">— €/km</div>
-      <p class="verdict-subline" id="verdict-subline">Renseigne au moins une course.</p>
+    <div class="layout">
 
-      <details class="verdict-details">
-        <summary>Détails</summary>
-        <div class="verdict-status" id="verdict-status">EN ATTENTE</div>
-        <p class="verdict-reason" id="verdict-reason"></p>
-        <ul class="verdict-notes" id="verdict-notes"></ul>
-        <div class="verdict-thresholds" id="verdict-thresholds"></div>
-      </details>
-    </aside>
+      <aside class="verdict-panel" id="verdict-panel">
+        <div class="verdict-rate-big" id="verdict-rate-big">— €/km</div>
+        <p class="verdict-subline" id="verdict-subline">Renseigne au moins une course.</p>
 
-    <main class="form-panel">
+        <details class="verdict-details">
+          <summary>Détails</summary>
+          <div class="verdict-status" id="verdict-status">EN ATTENTE</div>
+          <p class="verdict-reason" id="verdict-reason"></p>
+          <ul class="verdict-notes" id="verdict-notes"></ul>
+          <div class="verdict-thresholds" id="verdict-thresholds"></div>
+        </details>
+      </aside>
 
-      <section class="field-group">
-        <div class="group-header">
-          <h2>Courses en attente</h2>
-          <span class="counter" id="offers-counter">1/4</span>
-        </div>
+      <main class="form-panel">
 
-        <div id="offers-list">
-          <div class="offer-row" data-offer>
-            <div class="offer-main">
-              <input type="number" class="offer-prix" inputmode="decimal" step="0.01" min="0" placeholder="Prix €" aria-label="Prix de la course en euros">
-              <input type="number" class="offer-distance" inputmode="decimal" step="0.1" min="0" placeholder="Distance km" aria-label="Distance de la course en kilomètres">
-              <button type="button" class="offer-remove" aria-label="Supprimer cette course" style="visibility:hidden;">×</button>
-            </div>
-            <div class="offer-badge" aria-live="polite"></div>
-            <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
+        <section class="field-group">
+          <div class="group-header">
+            <h2>Courses en attente</h2>
+            <span class="counter" id="offers-counter">1/4</span>
           </div>
-        </div>
 
-        <button type="button" id="add-offer" class="add-btn">+ Ajouter une course simultanée</button>
-        <p class="hint">Une course reçue en même temps sur une autre appli ? Ajoute-la ici — la meilleure remonte automatiquement dans la bulle. "Enregistrer" la sauvegarde et démarre son suivi.</p>
-      </section>
+          <div id="offers-list">
+            <div class="offer-row" data-offer>
+              <div class="offer-main">
+                <input type="number" class="offer-prix" inputmode="decimal" step="0.01" min="0" placeholder="Prix €" aria-label="Prix de la course en euros">
+                <input type="number" class="offer-distance" inputmode="decimal" step="0.1" min="0" placeholder="Distance km" aria-label="Distance de la course en kilomètres">
+                <button type="button" class="offer-remove" aria-label="Supprimer cette course" style="visibility:hidden;">×</button>
+              </div>
+              <div class="offer-badge" aria-live="polite"></div>
+              <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
+            </div>
+          </div>
 
-      <section class="field-group">
-        <h2>Période</h2>
-        <div class="radio-row">
-          <label class="radio-pill"><input type="radio" name="periode" value="pointe" id="periode-pointe"> Heure de pointe</label>
-          <label class="radio-pill"><input type="radio" name="periode" value="creuse" id="periode-creuse"> Heure creuse</label>
-        </div>
-        <p class="hint" id="periode-auto"></p>
-      </section>
+          <button type="button" id="add-offer" class="add-btn">+ Ajouter une course simultanée</button>
+          <p class="hint">Une course reçue en même temps sur une autre appli ? Ajoute-la ici — la meilleure remonte automatiquement dans la bulle.</p>
+        </section>
 
-      <section class="field-group">
-        <h2>Conditions</h2>
-        <label class="checkbox-row"><input type="checkbox" id="pluie"> Pluie / intempéries</label>
-        <label class="checkbox-row"><input type="checkbox" id="chaleur"> Forte chaleur (&gt;28°C)</label>
-        <label class="sub-field" for="temperature">Température actuelle (°C)
-          <input type="number" id="temperature" inputmode="decimal" step="1" placeholder="—">
-        </label>
-        <label class="checkbox-row"><input type="checkbox" id="fatigue"> Fatigue élevée (mode conservation)</label>
-      </section>
+        <section class="field-group">
+          <h2>Période</h2>
+          <div class="radio-row">
+            <label class="radio-pill"><input type="radio" name="periode" value="pointe" id="periode-pointe"> Heure de pointe</label>
+            <label class="radio-pill"><input type="radio" name="periode" value="creuse" id="periode-creuse"> Heure creuse</label>
+          </div>
+          <p class="hint" id="periode-auto"></p>
+        </section>
 
-      <section class="field-group">
-        <h2>Service en cours</h2>
-        <div class="row-2">
-          <label for="heures">Temps écoulé (h)
-            <input type="number" id="heures" inputmode="decimal" step="0.5" min="0" placeholder="0">
+        <section class="field-group">
+          <h2>Conditions</h2>
+          <label class="checkbox-row"><input type="checkbox" id="pluie"> Pluie / intempéries</label>
+          <label class="checkbox-row"><input type="checkbox" id="chaleur"> Forte chaleur (&gt;28°C)</label>
+          <label class="sub-field" for="temperature">Température actuelle (°C)
+            <input type="number" id="temperature" inputmode="decimal" step="1" placeholder="—">
           </label>
-          <label for="longues">Courses longues enchaînées
-            <input type="number" id="longues" inputmode="numeric" step="1" min="0" placeholder="0">
-          </label>
-        </div>
-        <label class="checkbox-row" style="margin-top:6px;"><input type="checkbox" id="evenement"> Événement local à proximité</label>
-      </section>
+          <label class="checkbox-row"><input type="checkbox" id="fatigue"> Fatigue élevée (mode conservation)</label>
+        </section>
 
-      <button type="button" id="reset" class="reset-btn">Réinitialiser</button>
+        <section class="field-group">
+          <h2>Service en cours</h2>
+          <div class="shift-box">
+            <div>
+              <div class="shift-status" id="shift-status">Service non démarré</div>
+              <div class="timer-display" id="shift-elapsed" style="font-size:26px;text-align:left;margin:2px 0;color:var(--text);" hidden>00h00</div>
+            </div>
+            <button type="button" id="shift-toggle-btn" class="add-btn" style="margin:0;width:auto;padding:10px 16px;">Démarrer ma journée</button>
+          </div>
+          <div class="row-2" style="margin-top:14px;">
+            <label for="longues">Courses longues enchaînées
+              <input type="number" id="longues" inputmode="numeric" step="1" min="0" placeholder="0">
+            </label>
+          </div>
+        </section>
 
-      <details class="info">
-        <summary>Comment ça marche</summary>
-        <ul>
-          <li>Aucune connexion réelle à Uber Eats, Deliveroo, Stuart ou Just Eat : toutes les courses sont saisies à la main.</li>
-          <li>Heure de pointe : seuil ≥ 1.70 €/km, distance max 4.5 km.</li>
-          <li>Heure creuse : seuil ≥ 2.00 €/km, distance max 3.5 km.</li>
-          <li>Course longue (&gt;6 km) : acceptée si ≥ 2.40 €/km, sauf plafond météo/fatigue dépassé.</li>
-          <li>Pluie : seuil -0.20 €/km, distance max 3.5 km.</li>
-          <li>Forte chaleur (&gt;28°C) : seuil ≥ 1.90 €/km, distance max 3 km.</li>
-          <li>Fatigue élevée : seuil +0.30 €/km, distance max 2.5 km (mode conservation).</li>
-          <li>Après 4h de service : tous les seuils relevés de +0.25 €/km.</li>
-          <li>Max 2 courses longues consécutives, sinon refus automatique.</li>
-          <li>« PEUT-ÊTRE » : distance entre le seuil standard et 6 km, sans condition météo/fatigue active — cas non couvert par les règles.</li>
-          <li>« Enregistrer cette course » sauvegarde la course en base et démarre son suivi (chrono 15 min) dans « Commandes en cours ».</li>
-          <li>Le bouton Pause du chrono est visuel uniquement : si tu recharges la page pendant une pause, le temps restant est recalculé comme si le chrono avait continué depuis le dernier « Démarrer ».</li>
-          <li>Une fois une course marquée « Validée », le formulaire « Courses en attente » se réinitialise automatiquement pour la suivante.</li>
-          <li>La rubrique Événements est en lecture seule ici : seul l'administrateur peut créer, modifier ou supprimer un événement (depuis le tableau de bord).</li>
-        </ul>
-      </details>
+        <button type="button" id="reset" class="reset-btn">Réinitialiser cette évaluation</button>
 
-    </main>
+        <details class="info">
+          <summary>Comment ça marche</summary>
+          <ul>
+            <li>Aucune connexion réelle à Uber Eats, Deliveroo, Stuart ou Just Eat : toutes les courses sont saisies à la main.</li>
+            <li>Heure de pointe : seuil ≥ 1.70 €/km, distance max 4.5 km.</li>
+            <li>Heure creuse : seuil ≥ 2.00 €/km, distance max 3.5 km.</li>
+            <li>Course longue (&gt;6 km) : acceptée si ≥ 2.40 €/km, sauf plafond météo/fatigue dépassé.</li>
+            <li>Pluie : seuil -0.20 €/km, distance max 3.5 km.</li>
+            <li>Forte chaleur (&gt;28°C) : seuil ≥ 1.90 €/km, distance max 3 km.</li>
+            <li>Fatigue élevée : seuil +0.30 €/km, distance max 2.5 km (mode conservation).</li>
+            <li>Après 4h de service (calculé automatiquement depuis « Démarrer ma journée ») : tous les seuils relevés de +0.25 €/km.</li>
+            <li>Max 2 courses longues consécutives, sinon refus automatique.</li>
+            <li>« PEUT-ÊTRE » : distance entre le seuil standard et 6 km, sans condition météo/fatigue active — cas non couvert par les règles.</li>
+            <li>Un événement en cours (onglet Événements) ajoute automatiquement un conseil de rester dans la zone — plus besoin de le signaler toi-même.</li>
+            <li>« Enregistrer cette course » sauvegarde la course et démarre son suivi (chrono 15 min) dans « Commandes en cours ». Une fois validée, ce formulaire se réinitialise automatiquement.</li>
+          </ul>
+        </details>
+
+      </main>
+    </div>
   </div>
+
+  <!-- ============================================================
+       ONGLET : PERFORMANCES (arrive dans une prochaine étape)
+       ============================================================ -->
+  <div id="tab-performances" class="tab-panel" hidden>
+    <section class="field-group">
+      <h2>Performances</h2>
+      <p class="hint">Bientôt disponible — chiffre d'affaires, €/heure, meilleurs créneaux.</p>
+    </section>
+  </div>
+
+  <!-- ============================================================
+       ONGLET : HISTORIQUE
+       ============================================================ -->
+  <div id="tab-historique" class="tab-panel" hidden>
+    <section class="field-group">
+      <div class="group-header">
+        <h2>Historique</h2>
+        <span class="counter" id="historique-count">0 course</span>
+      </div>
+      <div class="dash-toolbar">
+        <select id="historique-filter">
+          <option value="tous">Toutes</option>
+          <option value="validee">Validées</option>
+          <option value="annulee">Annulées</option>
+        </select>
+      </div>
+      <div id="historique-list"></div>
+      <p class="hint" id="historique-empty">Aucune course dans l'historique pour le moment.</p>
+    </section>
+  </div>
+
+  <!-- ============================================================
+       ONGLET : ÉVÉNEMENTS (lecture seule)
+       ============================================================ -->
+  <div id="tab-evenements" class="tab-panel" hidden>
+    <section class="field-group" id="evenements-section">
+      <h2>Événements</h2>
+      <p class="hint" id="evenements-empty">Aucun événement à venir pour le moment.</p>
+      <div id="evenements-list"></div>
+    </section>
+  </div>
+
+  <!-- ============================================================
+       ONGLET : PROFIL
+       ============================================================ -->
+  <div id="tab-profil" class="tab-panel" hidden>
+    <section class="field-group">
+      <h2>Profil</h2>
+      <p id="profil-nom" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:600;margin:0 0 2px;"></p>
+      <p id="profil-email" class="hint" style="margin:0 0 4px;"></p>
+      <p id="profil-role" class="hint" style="margin:0 0 18px;"></p>
+      <button type="button" id="logout-btn" class="reset-btn">Déconnexion</button>
+    </section>
+  </div>
+
 </div>
+
+<nav class="bottom-nav">
+  <button type="button" class="nav-btn active" data-tab="livraison"><span class="nav-icon">🚗</span><span>Livraison</span></button>
+  <button type="button" class="nav-btn" data-tab="performances"><span class="nav-icon">📊</span><span>Performances</span></button>
+  <button type="button" class="nav-btn" data-tab="historique"><span class="nav-icon">📋</span><span>Historique</span></button>
+  <button type="button" class="nav-btn" data-tab="evenements"><span class="nav-icon">📅</span><span>Événements</span></button>
+  <button type="button" class="nav-btn" data-tab="profil"><span class="nav-icon">⚙️</span><span>Profil</span></button>
+</nav>
 
 <template id="offer-row-template">
   <div class="offer-row" data-offer>

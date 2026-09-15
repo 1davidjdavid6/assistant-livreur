@@ -7,6 +7,8 @@ const template = $('offer-row-template');
 let currentSession = null;
 let currentProfile = null;
 const activeTimers = {};
+let allEvenements = [];
+let shiftIntervalId = null;
 
 function num(el, fallback){
   if(!el) return fallback;
@@ -15,6 +17,29 @@ function num(el, fallback){
 }
 function fmtEuro(n){ return Number(n).toFixed(2); }
 function fmtKm(n){ return Number(n).toFixed(1); }
+function escapeHtmlLocal(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+/* ============================================================
+   NAVIGATION PAR ONGLETS
+   ============================================================ */
+function initTabs(){
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+}
+function switchTab(tabName){
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.hidden = panel.id !== `tab-${tabName}`;
+  });
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  if(tabName === 'historique') loadHistorique();
+}
 
 /* ============================================================
    AUTH
@@ -23,78 +48,79 @@ async function initAuth(){
   currentSession = await requireSession();
   if(!currentSession) return;
   currentProfile = await getMyProfile(currentSession.user.id);
-  $('user-greeting').textContent = currentProfile && currentProfile.nom
-    ? `Salut ${currentProfile.nom}`
-    : currentSession.user.email;
+
+  $('profil-nom').textContent = currentProfile && currentProfile.nom ? currentProfile.nom : 'Livreur';
+  $('profil-email').textContent = currentSession.user.email;
+  $('profil-role').textContent = currentProfile && currentProfile.role === 'admin' ? 'Rôle : administrateur' : 'Rôle : livreur';
   $('logout-btn').addEventListener('click', logout);
+
+  initShiftUI();
   loadActiveOrders();
   loadEvenements();
   subscribeEvenementsRealtime();
 }
 
 /* ============================================================
-   Événements (lecture seule ici — gestion réservée à l'admin
-   dans le tableau de bord)
+   SERVICE (démarrage / heures écoulées automatiques)
    ============================================================ */
-let allEvenements = [];
-
-async function loadEvenements(){
-  const { data, error } = await supabaseClient
-    .from('evenements')
-    .select('*')
-    .order('date_debut', { ascending: true });
-  if(error){ console.error('Erreur événements :', error); return; }
-  allEvenements = data || [];
-  renderEvenements();
+function initShiftUI(){
+  $('shift-toggle-btn').addEventListener('click', toggleShift);
+  renderShiftUI();
+  if(currentProfile && currentProfile.shift_started_at){
+    shiftIntervalId = setInterval(renderShiftUI, 1000 * 30); // rafraîchit toutes les 30s, suffisant pour un affichage en heures
+  }
 }
 
-function subscribeEvenementsRealtime(){
-  supabaseClient
-    .channel('evenements-livreur')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'evenements' }, () => {
-      loadEvenements();
-    })
-    .subscribe();
+function getShiftHours(){
+  if(!currentProfile || !currentProfile.shift_started_at) return 0;
+  const elapsedMs = Date.now() - new Date(currentProfile.shift_started_at).getTime();
+  return Math.max(0, elapsedMs / 1000 / 3600);
 }
 
-function formatEventDate(iso){
-  return new Date(iso).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+function renderShiftUI(){
+  const started = currentProfile && currentProfile.shift_started_at;
+  const statusEl = $('shift-status');
+  const elapsedEl = $('shift-elapsed');
+  const btn = $('shift-toggle-btn');
+
+  if(started){
+    const hours = getShiftHours();
+    const h = Math.floor(hours);
+    const m = Math.floor((hours - h) * 60);
+    statusEl.textContent = 'Service en cours depuis';
+    elapsedEl.hidden = false;
+    elapsedEl.textContent = `${String(h).padStart(2,'0')}h${String(m).padStart(2,'0')}`;
+    btn.textContent = 'Terminer ma journée';
+  } else {
+    statusEl.textContent = 'Service non démarré';
+    elapsedEl.hidden = true;
+    btn.textContent = 'Démarrer ma journée';
+  }
+  recalcAll();
 }
 
-function renderEvenements(){
-  const now = Date.now();
-  const upcoming = allEvenements.filter(e => new Date(e.date_fin).getTime() >= now);
-  upcoming.sort((a,b)=>{
-    const aLive = new Date(a.date_debut) <= new Date() && new Date() <= new Date(a.date_fin);
-    const bLive = new Date(b.date_debut) <= new Date() && new Date() <= new Date(b.date_fin);
-    if(aLive !== bLive) return aLive ? -1 : 1;
-    return new Date(a.date_debut) - new Date(b.date_debut);
-  });
+async function toggleShift(){
+  const btn = $('shift-toggle-btn');
+  btn.disabled = true;
+  const starting = !(currentProfile && currentProfile.shift_started_at);
+  const value = starting ? new Date().toISOString() : null;
 
-  const container = $('evenements-list');
-  container.innerHTML = '';
-  $('evenements-empty').hidden = upcoming.length > 0;
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ shift_started_at: value })
+    .eq('id', currentSession.user.id);
 
-  upcoming.forEach(ev => {
-    const isLive = new Date(ev.date_debut).getTime() <= now && now <= new Date(ev.date_fin).getTime();
-    const card = document.createElement('div');
-    card.className = 'event-card' + (isLive ? ' event-live' : '');
-    card.innerHTML = `
-      <div class="active-order-head">
-        <span class="meta">${formatEventDate(ev.date_debut)} → ${formatEventDate(ev.date_fin)}</span>
-        <span class="badge-pill ${isLive ? 'st-en_cours' : 'st-en_attente'}">${isLive ? 'EN COURS' : 'À VENIR'}</span>
-      </div>
-      <div class="event-title">${escapeHtmlLocal(ev.titre)}</div>
-      ${ev.description ? `<p class="event-desc">${escapeHtmlLocal(ev.description)}</p>` : ''}
-    `;
-    container.appendChild(card);
-  });
-}
+  btn.disabled = false;
+  if(error){ alert("Erreur : " + error.message); return; }
 
-function escapeHtmlLocal(str){
-  const div = document.createElement('div');
-  div.textContent = str == null ? '' : str;
-  return div.innerHTML;
+  currentProfile.shift_started_at = value;
+  if(starting){
+    shiftIntervalId = setInterval(renderShiftUI, 1000 * 30);
+  } else if(shiftIntervalId){
+    clearInterval(shiftIntervalId);
+    shiftIntervalId = null;
+  }
+  renderShiftUI();
 }
 
 /* ============================================================
@@ -115,6 +141,75 @@ function updatePillStates(){
     const input = p.querySelector('input');
     p.classList.toggle('active', input.checked);
   });
+}
+
+/* ============================================================
+   Événements (lecture) + dérivation auto du flag "événement en cours"
+   ============================================================ */
+function isEventLive(ev){
+  const now = Date.now();
+  return new Date(ev.date_debut).getTime() <= now && now <= new Date(ev.date_fin).getTime();
+}
+
+async function loadEvenements(){
+  const { data, error } = await supabaseClient
+    .from('evenements')
+    .select('*')
+    .order('date_debut', { ascending: true });
+  if(error){ console.error('Erreur événements :', error); return; }
+  allEvenements = data || [];
+  renderEvenements();
+  renderLiveEventBanner();
+  recalcAll();
+}
+
+function subscribeEvenementsRealtime(){
+  supabaseClient
+    .channel('evenements-livreur')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'evenements' }, () => loadEvenements())
+    .subscribe();
+}
+
+function formatEventDate(iso){
+  return new Date(iso).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderEvenements(){
+  const now = Date.now();
+  const upcoming = allEvenements.filter(e => new Date(e.date_fin).getTime() >= now);
+  upcoming.sort((a,b)=>{
+    const aLive = isEventLive(a), bLive = isEventLive(b);
+    if(aLive !== bLive) return aLive ? -1 : 1;
+    return new Date(a.date_debut) - new Date(b.date_debut);
+  });
+
+  const container = $('evenements-list');
+  container.innerHTML = '';
+  $('evenements-empty').hidden = upcoming.length > 0;
+
+  upcoming.forEach(ev => {
+    const isLive = isEventLive(ev);
+    const card = document.createElement('div');
+    card.className = 'event-card' + (isLive ? ' event-live' : '');
+    card.innerHTML = `
+      <div class="active-order-head">
+        <span class="meta">${formatEventDate(ev.date_debut)} → ${formatEventDate(ev.date_fin)}</span>
+        <span class="badge-pill ${isLive ? 'st-en_cours' : 'st-en_attente'}">${isLive ? 'EN COURS' : 'À VENIR'}</span>
+      </div>
+      <div class="event-title">${escapeHtmlLocal(ev.titre)}</div>
+      ${ev.description ? `<p class="event-desc">${escapeHtmlLocal(ev.description)}</p>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderLiveEventBanner(){
+  const banner = $('live-event-banner');
+  const live = allEvenements.filter(isEventLive);
+  if(live.length === 0){ banner.hidden = true; return; }
+  banner.hidden = false;
+  banner.innerHTML = `<span class="dot"></span><span>Événement en cours : <strong>${escapeHtmlLocal(live[0].titre)}</strong>${live.length > 1 ? ` (+${live.length - 1} autre${live.length > 2 ? 's' : ''})` : ''}</span>`;
+  banner.onclick = () => switchTab('evenements');
 }
 
 /* ============================================================
@@ -233,10 +328,10 @@ function readGlobalConditions(){
   const tempVal = $('temperature').value === '' ? null : parseFloat($('temperature').value);
   const chaleur = $('chaleur').checked || (tempVal !== null && !isNaN(tempVal) && tempVal > 28);
   const fatigue = $('fatigue').checked;
-  const heuresService = num($('heures'), 0);
+  const heuresService = getShiftHours();
   const afterFour = heuresService > 4 ? 0.25 : 0;
   const nbLongues = num($('longues'), 0);
-  const evenement = $('evenement').checked;
+  const evenement = allEvenements.some(isEventLive);
   return { periode, pluie, chaleur, fatigue, heuresService, afterFour, nbLongues, evenement };
 }
 
@@ -263,7 +358,6 @@ function recalcAll(){
     }
 
     const evalRes = evaluateCourse(prix, distance, cond);
-
     const cls = evalRes.decision==='ACCEPTER' ? 'ok' : (evalRes.decision==='PEUT-ÊTRE' ? 'maybe' : 'no');
     row.classList.add('row-'+cls);
     saveBtn.disabled = false;
@@ -316,18 +410,14 @@ function renderTop(results, cond){
   const addNote = (txt) => { const li=document.createElement('li'); li.textContent=txt; $('verdict-notes').appendChild(li); };
   best.evalRes.notes.forEach(addNote);
   if(cond.evenement && best.evalRes.decision !== 'REFUSER'){
-    addNote('🎉 Événement local : reste dans la zone si le €/km suit.');
+    addNote('🎉 Événement en cours à proximité : reste dans la zone si le €/km suit.');
   }
 
   $('verdict-thresholds').textContent = `Seuil requis : ${fmtEuro(best.evalRes.effectiveMin)} €/km · Distance max : ${fmtKm(best.evalRes.effectiveMaxDist)} km`;
 }
 
 /* ============================================================
-   Sauvegarde d'une course + suivi (commandes en cours + chrono)
-   ============================================================ */
-/* ============================================================
    Réinitialisation du formulaire "Courses en attente"
-   (bouton manuel + déclenchement automatique après validation)
    ============================================================ */
 function resetOfferForm(){
   [...offersList.children].forEach((row, i)=>{
@@ -344,6 +434,9 @@ function resetOfferForm(){
   recalcAll();
 }
 
+/* ============================================================
+   Sauvegarde d'une course + suivi (commandes en cours + chrono)
+   ============================================================ */
 async function handleSaveOffer(row){
   const cond = readGlobalConditions();
   const prix = num(row.querySelector('.offer-prix'), NaN);
@@ -372,7 +465,7 @@ async function handleSaveOffer(row){
     return;
   }
   addActiveOrderCard(data);
-  document.getElementById('active-orders-section').scrollIntoView({ behavior:'smooth', block:'start' });
+  $('active-orders-section').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 async function loadActiveOrders(){
@@ -476,23 +569,61 @@ function addActiveOrderCard(order){
 }
 
 /* ============================================================
+   Historique
+   ============================================================ */
+async function loadHistorique(){
+  const filter = $('historique-filter').value;
+  let query = supabaseClient
+    .from('courses')
+    .select('*')
+    .eq('created_by', currentSession.user.id)
+    .in('statut', ['validee','annulee'])
+    .order('updated_at', { ascending: false })
+    .limit(100);
+
+  if(filter !== 'tous') query = query.eq('statut', filter);
+
+  const { data, error } = await query;
+  if(error){ console.error(error); return; }
+  renderHistorique(data || []);
+}
+
+function renderHistorique(rows){
+  const container = $('historique-list');
+  container.innerHTML = '';
+  $('historique-empty').hidden = rows.length > 0;
+  $('historique-count').textContent = `${rows.length} course${rows.length > 1 ? 's' : ''}`;
+
+  rows.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'historique-item';
+    item.innerHTML = `
+      <div>
+        <div>${fmtEuro(c.prix)} € · ${fmtKm(c.distance)} km · ${c.euro_km != null ? fmtEuro(c.euro_km) : '—'} €/km</div>
+        <div class="meta">${new Date(c.updated_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</div>
+      </div>
+      <span class="badge-pill st-${c.statut}">${c.statut === 'validee' ? 'Validée' : 'Annulée'}</span>
+    `;
+    container.appendChild(item);
+  });
+}
+
+/* ============================================================
    Câblage global
    ============================================================ */
-['pluie','chaleur','fatigue','evenement'].forEach(id => $(id).addEventListener('change', recalcAll));
+['pluie','chaleur','fatigue'].forEach(id => $(id).addEventListener('change', recalcAll));
 $('temperature').addEventListener('input', recalcAll);
-$('heures').addEventListener('input', recalcAll);
 $('longues').addEventListener('input', recalcAll);
 document.querySelectorAll('input[name=periode]').forEach(r => r.addEventListener('change', ()=>{ updatePillStates(); recalcAll(); }));
 
 $('add-offer').addEventListener('click', addOfferRow);
+$('historique-filter').addEventListener('change', loadHistorique);
 
 $('reset').addEventListener('click', ()=>{
   $('pluie').checked = false;
   $('chaleur').checked = false;
   $('fatigue').checked = false;
-  $('evenement').checked = false;
   $('temperature').value = '';
-  $('heures').value = '';
   $('longues').value = '';
   setPeriodeAuto();
   resetOfferForm();
@@ -502,6 +633,7 @@ $('reset').addEventListener('click', ()=>{
    Init
    ============================================================ */
 bindOfferRow(offersList.children[0]);
+initTabs();
 setPeriodeAuto();
 updateOffersUI();
 recalcAll();
