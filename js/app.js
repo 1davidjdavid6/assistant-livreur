@@ -58,6 +58,7 @@ async function initAuth(){
   loadActiveOrders();
   loadEvenements();
   subscribeEvenementsRealtime();
+  subscribeHistoriqueRealtime();
 }
 
 /* ============================================================
@@ -503,8 +504,14 @@ function addActiveOrderCard(order){
       <span class="meta">${fmtEuro(order.prix)} € · ${fmtKm(order.distance)} km · ${fmtEuro(order.euro_km)} €/km</span>
       <span class="badge-pill st-en_cours">EN COURS</span>
     </div>
-    <div class="timer-display" data-role="timer">00:15:00</div>
-    <p class="timer-expired-msg" data-role="expired" hidden>⏰ 15 minutes écoulées — tu peux annuler la commande.</p>
+    <div class="timer-ring-wrap">
+      <svg class="timer-ring" viewBox="0 0 100 100">
+        <circle class="timer-ring-track" cx="50" cy="50" r="45"></circle>
+        <circle class="timer-ring-progress" data-role="ring" cx="50" cy="50" r="45"></circle>
+      </svg>
+      <div class="timer-display" data-role="timer">05:00</div>
+    </div>
+    <p class="timer-expired-msg" data-role="expired" hidden>⏰ 5 minutes écoulées — tu peux annuler la commande.</p>
     <div class="timer-controls">
       <button type="button" data-action="start">Démarrer</button>
       <button type="button" data-action="pause">Pause</button>
@@ -520,15 +527,30 @@ function addActiveOrderCard(order){
 
   const timerEl = card.querySelector('[data-role="timer"]');
   const expiredEl = card.querySelector('[data-role="expired"]');
+  const ringEl = card.querySelector('[data-role="ring"]');
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 45;
+  ringEl.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
   const initialRemaining = computeInitialRemaining(order);
+  const duration = order.timer_duration_seconds || LivreurTimer.TIMER_DEFAULT_DURATION;
 
   const timer = LivreurTimer.createTimer({
     remainingSeconds: initialRemaining,
-    onTick: (remaining) => { timerEl.textContent = LivreurTimer.formatTimer(remaining); },
+    onTick: (remaining) => {
+      timerEl.textContent = LivreurTimer.formatTimer(remaining);
+      const ratio = Math.max(0, Math.min(1, remaining / duration));
+      ringEl.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - ratio)}`;
+    },
     onStateChange: (state) => {
-      timerEl.classList.remove('state-avertissement','state-alerte','state-expired');
-      if(state !== 'normal') timerEl.classList.add('state-'+state);
+      timerEl.classList.remove('state-alerte','state-expired');
+      ringEl.classList.remove('state-alerte','state-expired');
+      if(state !== 'normal'){
+        timerEl.classList.add('state-'+state);
+        ringEl.classList.add('state-'+state);
+      }
       expiredEl.hidden = state !== 'expired';
+      if(state === 'alerte' && navigator.vibrate){
+        navigator.vibrate(400); // Android uniquement — l'API Vibration n'existe pas sur Safari/iOS
+      }
     }
   });
   activeTimers[order.id] = timer;
@@ -588,6 +610,19 @@ async function loadHistorique(){
   renderHistorique(data || []);
 }
 
+function subscribeHistoriqueRealtime(){
+  supabaseClient
+    .channel('courses-historique-' + currentSession.user.id)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'courses',
+      filter: `created_by=eq.${currentSession.user.id}`
+    }, () => {
+      // Rafraîchit seulement si l'onglet Historique est actuellement affiché
+      if(!$('tab-historique').hidden) loadHistorique();
+    })
+    .subscribe();
+}
+
 function renderHistorique(rows){
   const container = $('historique-list');
   container.innerHTML = '';
@@ -599,8 +634,8 @@ function renderHistorique(rows){
     item.className = 'historique-item';
     item.innerHTML = `
       <div>
-        <div>${fmtEuro(c.prix)} € · ${fmtKm(c.distance)} km · ${c.euro_km != null ? fmtEuro(c.euro_km) : '—'} €/km</div>
-        <div class="meta">${new Date(c.updated_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</div>
+        <div>${fmtEuro(c.prix)} € · ${fmtKm(c.distance)} km · ${c.euro_km != null ? fmtEuro(c.euro_km) : '—'} €/km${c.duree_minutes != null ? ` · ${c.duree_minutes} min` : ''}</div>
+        <div class="meta">${new Date(c.updated_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}${c.source === 'import_csv' ? ' · importée' : ''}</div>
       </div>
       <span class="badge-pill st-${c.statut}">${c.statut === 'validee' ? 'Validée' : 'Annulée'}</span>
     `;

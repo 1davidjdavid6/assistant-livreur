@@ -28,6 +28,42 @@
   </section>
 
   <div id="dashboard-content">
+    <section class="field-group" id="users-section">
+      <div class="group-header">
+        <h2>Utilisateurs</h2>
+        <span class="counter" id="users-count">0 utilisateur</span>
+      </div>
+      <p class="hint">Renseigne l'identifiant Uber (email ou nom tel qu'il apparaît dans le CSV) de chaque livreur pour que l'import sache à qui attribuer les courses.</p>
+      <div id="users-list"></div>
+    </section>
+
+    <section class="field-group" id="csv-import-section">
+      <h2>📥 Importer un relevé Uber</h2>
+      <input type="file" id="csv-file-input" accept=".csv" class="csv-file-input">
+
+      <div id="csv-preview" hidden style="margin-top:16px;">
+        <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:18px;margin:0 0 10px;">Mapping des colonnes détecté</h3>
+        <div id="csv-mapping-table"></div>
+        <button type="button" id="csv-analyze-btn" class="save-btn" style="border-color:var(--accent);">Analyser le fichier</button>
+      </div>
+
+      <div id="csv-summary" hidden style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+        <div id="csv-summary-content"></div>
+        <div class="event-form-actions">
+          <button type="button" id="csv-confirm-btn" class="save-btn" style="border-color:var(--ok-fg);color:var(--ok-fg);">Confirmer l'import</button>
+          <button type="button" id="csv-cancel-btn" class="reset-btn" style="margin:0;">Annuler</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="field-group">
+      <div class="group-header">
+        <h2>Historique des imports</h2>
+      </div>
+      <div id="csv-imports-list"></div>
+      <p class="hint" id="csv-imports-empty">Aucun import pour le moment.</p>
+    </section>
+
     <section class="field-group">
       <div class="group-header">
         <h2>Événements</h2>
@@ -105,8 +141,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/events-admin.js"></script>
+<script src="js/csv-import.js"></script>
 </body>
 </html>

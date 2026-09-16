@@ -1,4 +1,5 @@
 let allCourses = [];
+let allProfiles = [];
 let profilesMap = {};
 
 async function initDashboard(){
@@ -22,6 +23,7 @@ async function initDashboard(){
   await loadCourses();
   subscribeRealtime();
   if(window.initEventsAdmin) window.initEventsAdmin();
+  if(window.initCsvImport) window.initCsvImport();
 
   document.getElementById('search-input').addEventListener('input', renderTable);
   document.getElementById('filter-statut').addEventListener('change', renderTable);
@@ -29,10 +31,54 @@ async function initDashboard(){
 }
 
 async function loadProfilesMap(){
-  const { data, error } = await supabaseClient.from('profiles').select('id, nom');
+  const { data, error } = await supabaseClient.from('profiles').select('id, nom, role, uber_identifiant');
   if(error){ console.error('Erreur profils :', error); return; }
   profilesMap = {};
-  (data || []).forEach(p => { profilesMap[p.id] = p.nom || 'Livreur'; });
+  allProfiles = data || [];
+  allProfiles.forEach(p => { profilesMap[p.id] = p.nom || 'Livreur'; });
+  renderUsersSection();
+}
+
+function renderUsersSection(){
+  const container = document.getElementById('users-list');
+  document.getElementById('users-count').textContent = `${allProfiles.length} utilisateur${allProfiles.length > 1 ? 's' : ''}`;
+  container.innerHTML = '';
+
+  allProfiles.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'event-list-item';
+    row.innerHTML = `
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <strong>${escapeHtml(p.nom || 'Sans nom')}</strong>
+          <span class="badge-pill ${p.role === 'admin' ? 'st-en_cours' : 'st-en_attente'}">${p.role === 'admin' ? 'Admin' : 'Livreur'}</span>
+        </div>
+        <input type="text" data-user-id="${p.id}" class="uber-id-input" placeholder="Identifiant Uber (email ou nom)" value="${escapeHtml(p.uber_identifiant || '')}" style="width:100%;">
+      </div>
+      <div class="event-actions">
+        <button type="button" data-action="save-uber-id" data-user-id="${p.id}">Enregistrer</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  container.querySelectorAll('[data-action="save-uber-id"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const userId = btn.dataset.userId;
+      const input = container.querySelector(`.uber-id-input[data-user-id="${userId}"]`);
+      btn.disabled = true;
+      btn.textContent = '…';
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ uber_identifiant: input.value.trim() || null })
+        .eq('id', userId);
+      btn.disabled = false;
+      btn.textContent = 'Enregistrer';
+      if(error){ alert('Erreur : ' + error.message); return; }
+      const p = allProfiles.find(x => x.id === userId);
+      if(p) p.uber_identifiant = input.value.trim() || null;
+    });
+  });
 }
 
 async function loadCourses(){

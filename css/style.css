@@ -363,3 +363,34 @@ table.dash-table tr:last-child td{border-bottom:none;}
 
 /* Profil */
 #tab-profil .field-group{max-width:420px;}
+
+/* Chrono : cercle qui se vide */
+.timer-ring-wrap{position:relative;width:120px;height:120px;margin:8px auto;}
+.timer-ring{width:100%;height:100%;transform:rotate(-90deg);}
+.timer-ring-track{fill:none;stroke:var(--surface);stroke-width:8;}
+.timer-ring-progress{
+  fill:none;
+  stroke:var(--ok-fg);
+  stroke-width:8;
+  stroke-linecap:round;
+  transition:stroke-dashoffset 1s linear, stroke .3s ease;
+}
+.timer-ring-progress.state-alerte{stroke:var(--maybe-fg);}
+.timer-ring-progress.state-expired{stroke:var(--no-fg);}
+.timer-ring-wrap .timer-display{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  margin:0; font-size:24px;
+}
+
+/* Import CSV */
+.csv-file-input{
+  width:100%;
+  background:var(--surface-2);
+  border:1px dashed var(--border);
+  border-radius:8px;
+  padding:14px;
+  color:var(--text-muted);
+  font-size:13.5px;
+  font-family:'Work Sans',sans-serif;
+}
