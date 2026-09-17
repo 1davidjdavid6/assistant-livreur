@@ -39,6 +39,7 @@ function switchTab(tabName){
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
   if(tabName === 'historique') loadHistorique();
+  if(tabName === 'performances' && window.loadPerformances) window.loadPerformances();
 }
 
 /* ============================================================

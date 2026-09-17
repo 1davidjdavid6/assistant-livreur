@@ -6,7 +6,7 @@ toutes plateformes à Besançon. Connecté à Supabase et déployé sur Netlify.
 ## Navigation (outil livreur — index.html)
 
 - 🚗 **Livraison** — évaluation de courses, commandes en cours + chrono 5 min
-- 📊 **Performances** — à venir
+- 📊 **Performances** — aujourd'hui, indice /100, meilleur créneau, heatmap, 7 derniers jours
 - 📋 **Historique** — courses validées/annulées (saisies à la main ou importées)
 - 📅 **Événements** — lecture seule
 - ⚙️ **Profil** — infos du compte, déconnexion
@@ -23,6 +23,7 @@ dashboard.html         → tableau de bord admin
 css/style.css          → design partagé
 js/supabase.js         → client Supabase + garde d'authentification
 js/timer.js            → chronomètre 5 min, module isolé
+js/performances.js     → calculs Performances (aucune API externe)
 js/app.js              → logique de l'outil livreur
 js/auth.js             → logique de connexion
 js/dashboard.js        → courses + gestion des utilisateurs (identifiant Uber)
@@ -77,6 +78,12 @@ update public.profiles set role = 'admin' where id = '<uuid-utilisateur>';
 
 ## Prochaines étapes
 
-- [ ] Onglet Performances (CA jour/semaine, €/heure, meilleurs créneaux)
-- [ ] Discussion en attente sur les idées "Objectif 2" (score de
-      productivité, heatmap, objectif du jour, résumé de fin de journée)
+- [x] Onglet Performances (Aujourd'hui, indice /100, meilleur créneau, heatmap, 7 derniers jours, stats globales)
+- [ ] Auto-calcul des courses longues enchaînées depuis l'historique
+- [ ] Auto-récupération météo (Besançon, API gratuite sans clé)
+- [ ] Simplification du comparateur multi-courses (flux single-course prioritaire)
+
+Volontairement écarté de Performances : un indicateur "temps perdu en attente"
+façon Objectif 2 — la donnée nécessaire (moment exact de récupération de la
+commande, distinct de sa validation) n'est pas capturée aujourd'hui. L'ajouter
+proprement demanderait un bouton "Récupérée" séparé de "Validée".

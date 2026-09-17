@@ -129,14 +129,60 @@
   </div>
 
   <!-- ============================================================
-       ONGLET : PERFORMANCES (arrive dans une prochaine étape)
+       ONGLET : PERFORMANCES
        ============================================================ -->
   <div id="tab-performances" class="tab-panel" hidden>
+
     <section class="field-group">
-      <h2>Performances</h2>
-      <p class="hint">Bientôt disponible — chiffre d'affaires, €/heure, meilleurs créneaux.</p>
+      <h2>Aujourd'hui</h2>
+      <div class="perf-hero-grid">
+        <div class="perf-stat"><div class="perf-stat-value" id="perf-today-revenue">—</div><div class="perf-stat-label">💰 Gains</div></div>
+        <div class="perf-stat"><div class="perf-stat-value" id="perf-today-rate">—</div><div class="perf-stat-label">⚡ €/heure</div></div>
+        <div class="perf-stat"><div class="perf-stat-value" id="perf-today-count">—</div><div class="perf-stat-label">🚗 Courses</div></div>
+      </div>
+      <p class="hint" id="perf-vs-yesterday"></p>
     </section>
+
+    <section class="field-group">
+      <h2>Indice de la journée</h2>
+      <div class="perf-score-row">
+        <div class="perf-score-badge" id="perf-score-badge">—</div>
+        <p class="hint" id="perf-score-detail" style="margin:0;">Pas encore de courses aujourd'hui.</p>
+      </div>
+      <details class="verdict-details" style="margin-top:12px;">
+        <summary>Comment ce score est calculé</summary>
+        <p class="hint" style="margin-top:8px;">Ton €/heure d'aujourd'hui rapporté à 25 €/h (référence "excellente heure" pour un VAE) : 100 = tu es à ce niveau ou au-dessus. Pas de composante cachée.</p>
+      </details>
+    </section>
+
+    <section class="field-group">
+      <h2>Meilleur créneau</h2>
+      <div id="perf-best-slot"><p class="hint">Pas encore assez de données pour identifier un créneau fiable.</p></div>
+    </section>
+
+    <section class="field-group">
+      <h2>Heures rentables</h2>
+      <div id="perf-heatmap" class="perf-heatmap"></div>
+      <p class="hint">Comparaison relative à tes propres courses uniquement — vert = tes meilleures heures, rouge = tes moins bonnes.</p>
+    </section>
+
+    <section class="field-group">
+      <h2>7 derniers jours</h2>
+      <div class="perf-hero-grid">
+        <div class="perf-stat"><div class="perf-stat-value" id="perf-week-revenue">—</div><div class="perf-stat-label">💰 Gains</div></div>
+        <div class="perf-stat"><div class="perf-stat-value" id="perf-week-rate">—</div><div class="perf-stat-label">⚡ €/heure</div></div>
+        <div class="perf-stat"><div class="perf-stat-value" id="perf-week-count">—</div><div class="perf-stat-label">🚗 Courses</div></div>
+      </div>
+      <p class="hint" id="perf-vs-lastweek"></p>
+    </section>
+
+    <section class="field-group">
+      <h2>Statistiques globales</h2>
+      <div id="perf-global-stats"><p class="hint">Pas encore de course validée.</p></div>
+    </section>
+
   </div>
+
 
   <!-- ============================================================
        ONGLET : HISTORIQUE
@@ -208,6 +254,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script src="js/timer.js"></script>
+<script src="js/performances.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
