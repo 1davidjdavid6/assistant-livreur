@@ -5,14 +5,38 @@ toutes plateformes à Besançon. Connecté à Supabase et déployé sur Netlify.
 
 ## Navigation (outil livreur — index.html)
 
-- 🚗 **Livraison** — évaluation de courses, commandes en cours + chrono 5 min
+- 🚗 **Livraison** — cockpit (gains/€h/courses/attente du jour), commandes en
+  cours + chrono 5 min, évaluation de courses
 - 📊 **Performances** — aujourd'hui, indice /100, meilleur créneau, heatmap, 7 derniers jours
 - 📋 **Historique** — courses validées/annulées (saisies à la main ou importées)
 - 📅 **Événements** — lecture seule
-- ⚙️ **Profil** — infos du compte, déconnexion
+- ⚙️ **Profil** — infos du compte, bouton Mode administrateur (si role=admin), déconnexion
 
 `dashboard.html` (admin uniquement) : Utilisateurs, Import CSV Uber,
-Historique des imports, Courses, Événements (CRUD).
+Historique des imports, Courses (ajout/suppression manuelle incluse), Événements (CRUD).
+
+## Cockpit et actions rapides
+
+Le haut de l'onglet Livraison affiche 4 cartes fixes (gains du jour, €/h
+moyen, nombre de courses, chrono de la commande en cours) — objectif :
+comprendre sa situation en moins de 2 secondes, sans naviguer ailleurs.
+
+Trois actions principales en gros boutons, une seule manipulation chacune :
+- 📦 **Commande reçue** (bouton "Enregistrer" existant, agrandi et relabellisé)
+- ✅ **Commande validée**
+- ❌ **Annulation**
+
+Avec le comparateur multi-courses (jusqu'à 4 simultanées), chaque ligne garde
+son propre bouton "Commande reçue" — dans le cas courant (une seule course),
+ça reste un seul gros bouton comme demandé.
+
+## Correction de l'historique par l'admin
+
+Dans le tableau de bord, section Courses : formulaire "➕ Ajouter la course"
+(livreur, prix, distance optionnelle, statut, date/heure) pour rattraper une
+course oubliée ou mal saisie, et un bouton 🗑️ par ligne pour en supprimer une
+enregistrée par erreur. Protégé par RLS (déjà en place), pas seulement par
+l'interface.
 
 ## Structure
 

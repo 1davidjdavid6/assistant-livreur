@@ -22,6 +22,7 @@ async function initDashboard(){
   await loadProfilesMap();
   await loadCourses();
   subscribeRealtime();
+  initAddCourseForm();
   if(window.initEventsAdmin) window.initEventsAdmin();
   if(window.initCsvImport) window.initCsvImport();
 
@@ -37,6 +38,61 @@ async function loadProfilesMap(){
   allProfiles = data || [];
   allProfiles.forEach(p => { profilesMap[p.id] = p.nom || 'Livreur'; });
   renderUsersSection();
+  populateLivreurSelect();
+}
+
+function populateLivreurSelect(){
+  const select = document.getElementById('ac-livreur');
+  select.innerHTML = allProfiles.map(p =>
+    `<option value="${p.id}">${escapeHtml(p.nom || 'Sans nom')}${p.role === 'admin' ? ' (admin)' : ''}</option>`
+  ).join('');
+}
+
+function resetAddCourseDate(){
+  const dateField = document.getElementById('ac-date');
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  dateField.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+function initAddCourseForm(){
+  resetAddCourseDate();
+
+  document.getElementById('add-course-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const livreurId = document.getElementById('ac-livreur').value;
+    const statut = document.getElementById('ac-statut').value;
+    const prix = parseFloat(document.getElementById('ac-prix').value);
+    const distanceVal = document.getElementById('ac-distance').value;
+    const distance = distanceVal === '' ? null : parseFloat(distanceVal);
+    const dateVal = document.getElementById('ac-date').value;
+
+    if(!livreurId || isNaN(prix) || prix <= 0 || !dateVal) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Ajout…';
+
+    const { error } = await supabaseClient.from('courses').insert({
+      created_by: livreurId,
+      prix,
+      distance,
+      euro_km: distance ? +(prix / distance).toFixed(2) : null,
+      decision: null,
+      statut,
+      source: 'manuel',
+      created_at: new Date(dateVal).toISOString()
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Ajouter la course';
+
+    if(error){ alert('Erreur : ' + error.message); return; }
+
+    e.target.reset();
+    resetAddCourseDate();
+    loadCourses();
+  });
 }
 
 function renderUsersSection(){
@@ -161,14 +217,30 @@ function renderTable(){
     tr.innerHTML = `
       <td>${escapeHtml(profilesMap[c.created_by] || 'Livreur')}</td>
       <td>${Number(c.prix).toFixed(2)} €</td>
-      <td>${Number(c.distance).toFixed(1)} km</td>
+      <td>${c.distance != null ? Number(c.distance).toFixed(1) + ' km' : '—'}</td>
       <td>${c.euro_km != null ? Number(c.euro_km).toFixed(2) : '—'} €/km</td>
       <td>${escapeHtml(c.decision) || '—'}</td>
       <td><span class="badge-pill st-${c.statut}">${statutLabel(c.statut)}</span></td>
       <td>${formatDateTime(c.created_at)}</td>
+      <td><button type="button" class="danger-delete-course" data-id="${c.id}" title="Supprimer cette course">🗑️</button></td>
     `;
     tbody.appendChild(tr);
   });
+
+  tbody.querySelectorAll('.danger-delete-course').forEach(btn => {
+    btn.addEventListener('click', () => deleteCourse(btn.dataset.id));
+  });
+}
+
+async function deleteCourse(id){
+  const course = allCourses.find(c => c.id === id);
+  const label = course ? `${Number(course.prix).toFixed(2)} € (${profilesMap[course.created_by] || 'Livreur'})` : 'cette course';
+  if(!confirm(`Supprimer définitivement ${label} ? Cette action est irréversible.`)) return;
+
+  const { error } = await supabaseClient.from('courses').delete().eq('id', id);
+  if(error){ alert('Erreur : ' + error.message); return; }
+  allCourses = allCourses.filter(c => c.id !== id);
+  renderTable();
 }
 
 initDashboard();

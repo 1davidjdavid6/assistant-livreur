@@ -24,6 +24,25 @@
        ============================================================ -->
   <div id="tab-livraison" class="tab-panel">
 
+    <div class="cockpit-grid">
+      <div class="cockpit-card">
+        <div class="cockpit-value" id="cockpit-gains">—</div>
+        <div class="cockpit-label">💰 Gains du jour</div>
+      </div>
+      <div class="cockpit-card">
+        <div class="cockpit-value" id="cockpit-rate">—</div>
+        <div class="cockpit-label">⚡ Moyenne</div>
+      </div>
+      <div class="cockpit-card">
+        <div class="cockpit-value" id="cockpit-count">—</div>
+        <div class="cockpit-label">🚗 Courses</div>
+      </div>
+      <div class="cockpit-card">
+        <div class="cockpit-value" id="cockpit-wait">—</div>
+        <div class="cockpit-label">⏱ Attente</div>
+      </div>
+    </div>
+
     <section class="field-group" id="active-orders-section">
       <h2>Commandes en cours</h2>
       <p class="hint" id="active-orders-empty">Aucune commande en cours. Enregistre une course ci-dessous pour démarrer son chrono de 5 minutes.</p>
@@ -61,7 +80,7 @@
                 <button type="button" class="offer-remove" aria-label="Supprimer cette course" style="visibility:hidden;">×</button>
               </div>
               <div class="offer-badge" aria-live="polite"></div>
-              <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
+              <button type="button" class="save-btn big-action-btn action-recu" disabled>📦 Commande reçue</button>
             </div>
           </div>
 
@@ -248,7 +267,7 @@
       <button type="button" class="offer-remove" aria-label="Supprimer cette course">×</button>
     </div>
     <div class="offer-badge" aria-live="polite"></div>
-    <button type="button" class="save-btn" disabled>Enregistrer cette course</button>
+    <button type="button" class="save-btn big-action-btn action-recu" disabled>📦 Commande reçue</button>
   </div>
 </template>
 

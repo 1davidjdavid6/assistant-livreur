@@ -440,3 +440,60 @@ table.dash-table tr:last-child td{border-bottom:none;}
   margin-bottom:12px;
 }
 .admin-mode-btn:hover{background:rgba(199,217,44,0.18);}
+
+/* ============================================================
+   Cockpit (4 cartes fixes en haut de l'onglet Livraison)
+   ============================================================ */
+.cockpit-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:18px;
+}
+.cockpit-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 6px;
+  text-align:center;
+  transition:border-color .2s ease;
+}
+.cockpit-card.state-avertissement{border-color:var(--maybe-fg);}
+.cockpit-card.state-alerte, .cockpit-card.state-expired{border-color:var(--no-fg);}
+.cockpit-value{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  font-size:clamp(18px,5vw,22px);
+  color:var(--text);
+  line-height:1.1;
+}
+.cockpit-label{font-size:10.5px;color:var(--text-muted);margin-top:3px;}
+
+/* Gros boutons d'action — une action = un bouton, difficile a manquer */
+.big-action-btn{
+  width:100%;
+  padding:18px;
+  border-radius:12px;
+  font-size:17px;
+  font-weight:700;
+  font-family:'Work Sans',sans-serif;
+  cursor:pointer;
+  border:none;
+  min-height:56px;
+}
+.big-action-btn.action-recu{background:var(--accent);color:#1E2229;}
+.big-action-btn.action-recu:disabled{background:var(--surface-2);color:var(--text-muted);cursor:not-allowed;}
+.big-action-btn.action-validee{background:var(--ok-fg);color:#12241A;margin-bottom:10px;}
+.big-action-btn.action-annuler{background:transparent;border:2px solid var(--no-fg);color:var(--no-fg);}
+
+/* Bouton supprimer une course (tableau admin) */
+.danger-delete-course{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text-muted);
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:14px;
+  cursor:pointer;
+}
+.danger-delete-course:hover{border-color:var(--no-fg);color:var(--no-fg);}

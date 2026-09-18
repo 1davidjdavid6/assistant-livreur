@@ -102,6 +102,35 @@
         <span class="counter" id="dash-count">0 course</span>
       </div>
 
+      <form class="event-form" id="add-course-form">
+        <p class="hint" style="margin:0;">➕ Ajouter une course oubliée ou mal enregistrée par un livreur</p>
+        <div class="row-2">
+          <label for="ac-livreur">Livreur
+            <select id="ac-livreur" required></select>
+          </label>
+          <label for="ac-statut">Statut
+            <select id="ac-statut">
+              <option value="validee">Validée</option>
+              <option value="annulee">Annulée</option>
+              <option value="en_attente">En attente</option>
+              <option value="en_cours">En cours</option>
+            </select>
+          </label>
+        </div>
+        <div class="row-2">
+          <label for="ac-prix">Prix (€)
+            <input type="number" id="ac-prix" step="0.01" min="0" required>
+          </label>
+          <label for="ac-distance">Distance (km, optionnel)
+            <input type="number" id="ac-distance" step="0.1" min="0">
+          </label>
+        </div>
+        <label for="ac-date">Date et heure
+          <input type="datetime-local" id="ac-date" required>
+        </label>
+        <button type="submit" class="save-btn" style="border-color:var(--accent);">Ajouter la course</button>
+      </form>
+
       <div class="dash-toolbar">
         <input type="text" id="search-input" placeholder="Rechercher un livreur…">
         <select id="filter-statut">
@@ -130,6 +159,7 @@
               <th>Décision</th>
               <th>Statut</th>
               <th>Créée le</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="dash-tbody"></tbody>

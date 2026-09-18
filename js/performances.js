@@ -210,3 +210,32 @@ function renderPerformances(){
 }
 
 window.loadPerformances = loadPerformances;
+
+/* ============================================================
+   Cockpit (onglet Livraison) — requête légère "aujourd'hui uniquement",
+   indépendante du chargement complet de l'onglet Performances.
+   ============================================================ */
+async function loadCockpitToday(){
+  const todayStart = new Date();
+  todayStart.setHours(0,0,0,0);
+
+  const { data, error } = await supabaseClient
+    .from('courses')
+    .select('prix, created_at, updated_at, duree_minutes')
+    .eq('created_by', currentSession.user.id)
+    .eq('statut', 'validee')
+    .gte('created_at', todayStart.toISOString());
+
+  if(error){ console.error('Erreur cockpit :', error); return { revenue: 0, rate: 0, count: 0 }; }
+
+  let revenue = 0, minutes = 0;
+  (data || []).forEach(c => {
+    revenue += Number(c.prix);
+    const created = new Date(c.created_at);
+    minutes += c.duree_minutes != null ? c.duree_minutes : Math.max(1, (new Date(c.updated_at) - created) / 60000);
+  });
+  const count = (data || []).length;
+  const rate = minutes > 0 ? revenue / (minutes / 60) : 0;
+  return { revenue, rate, count };
+}
+window.loadCockpitToday = loadCockpitToday;

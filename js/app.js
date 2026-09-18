@@ -66,11 +66,19 @@ async function initAuth(){
   loadEvenements();
   subscribeEvenementsRealtime();
   subscribeHistoriqueRealtime();
+  updateCockpit();
 }
 
 /* ============================================================
    SERVICE (démarrage / heures écoulées automatiques)
    ============================================================ */
+async function updateCockpit(){
+  const stats = await window.loadCockpitToday();
+  $('cockpit-gains').textContent = `${stats.revenue.toFixed(0)} €`;
+  $('cockpit-rate').textContent = stats.count > 0 ? `${stats.rate.toFixed(0)} €/h` : '—';
+  $('cockpit-count').textContent = stats.count;
+}
+
 function initShiftUI(){
   $('shift-toggle-btn').addEventListener('click', toggleShift);
   renderShiftUI();
@@ -465,7 +473,7 @@ async function handleSaveOffer(row){
     timer_duration_seconds: LivreurTimer.TIMER_DEFAULT_DURATION
   }).select().single();
 
-  saveBtn.textContent = 'Enregistrer cette course';
+  saveBtn.textContent = '📦 Commande reçue';
   saveBtn.disabled = false;
 
   if(error){
@@ -493,6 +501,10 @@ async function loadActiveOrders(){
 function toggleActiveOrdersEmpty(){
   const container = $('active-orders');
   $('active-orders-empty').hidden = container.children.length > 0;
+  if(container.children.length === 0){
+    $('cockpit-wait').textContent = '—';
+    $('cockpit-wait').closest('.cockpit-card').classList.remove('state-avertissement','state-alerte','state-expired');
+  }
 }
 
 function computeInitialRemaining(order){
@@ -525,8 +537,8 @@ function addActiveOrderCard(order){
       <button type="button" data-action="reset">Réinitialiser</button>
     </div>
     <div class="order-actions">
-      <button type="button" class="btn-validee" data-action="valider">Marquer validée</button>
-      <button type="button" class="btn-annuler" data-action="annuler">Annuler</button>
+      <button type="button" class="big-action-btn action-validee" data-action="valider">✅ Commande validée</button>
+      <button type="button" class="big-action-btn action-annuler" data-action="annuler">❌ Annulation</button>
     </div>
   `;
   container.appendChild(card);
@@ -546,6 +558,9 @@ function addActiveOrderCard(order){
       timerEl.textContent = LivreurTimer.formatTimer(remaining);
       const ratio = Math.max(0, Math.min(1, remaining / duration));
       ringEl.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - ratio)}`;
+      if(container.firstElementChild === card){
+        $('cockpit-wait').textContent = LivreurTimer.formatTimer(remaining);
+      }
     },
     onStateChange: (state) => {
       timerEl.classList.remove('state-alerte','state-expired');
@@ -555,6 +570,11 @@ function addActiveOrderCard(order){
         ringEl.classList.add('state-'+state);
       }
       expiredEl.hidden = state !== 'expired';
+      if(container.firstElementChild === card){
+        const cockpitCard = $('cockpit-wait').closest('.cockpit-card');
+        cockpitCard.classList.remove('state-avertissement','state-alerte','state-expired');
+        if(state !== 'normal') cockpitCard.classList.add('state-'+state);
+      }
       if(state === 'alerte' && navigator.vibrate){
         navigator.vibrate(400); // Android uniquement — l'API Vibration n'existe pas sur Safari/iOS
       }
@@ -587,6 +607,7 @@ function addActiveOrderCard(order){
     card.remove();
     toggleActiveOrdersEmpty();
     resetOfferForm();
+    updateCockpit();
   });
   card.querySelector('[data-action="annuler"]').addEventListener('click', async () => {
     await supabaseClient.from('courses').update({ statut: 'annulee' }).eq('id', order.id);
