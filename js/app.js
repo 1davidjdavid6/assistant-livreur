@@ -55,6 +55,12 @@ async function initAuth(){
   $('profil-role').textContent = currentProfile && currentProfile.role === 'admin' ? 'Rôle : administrateur' : 'Rôle : livreur';
   $('logout-btn').addEventListener('click', logout);
 
+  if(currentProfile && currentProfile.role === 'admin'){
+    const adminBtn = $('admin-mode-btn');
+    adminBtn.hidden = false;
+    adminBtn.addEventListener('click', () => { window.location.href = 'dashboard.html'; });
+  }
+
   initShiftUI();
   loadActiveOrders();
   loadEvenements();

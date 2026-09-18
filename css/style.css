@@ -424,3 +424,19 @@ table.dash-table tr:last-child td{border-bottom:none;}
 .perf-heat-cell.tier-ok{background:var(--ok-bg);border-color:var(--ok-fg);color:var(--ok-fg);}
 .perf-heat-cell.tier-maybe{background:var(--maybe-bg);border-color:var(--maybe-fg);color:var(--maybe-fg);}
 .perf-heat-cell.tier-no{background:var(--no-bg);border-color:var(--no-fg);color:var(--no-fg);}
+
+/* Bouton Mode administrateur (visible uniquement si role=admin, verifie cote serveur) */
+.admin-mode-btn{
+  width:100%;
+  background:rgba(199,217,44,0.1);
+  border:1px solid var(--accent);
+  color:var(--accent);
+  padding:12px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:600;
+  font-family:'Work Sans',sans-serif;
+  cursor:pointer;
+  margin-bottom:12px;
+}
+.admin-mode-btn:hover{background:rgba(199,217,44,0.18);}
