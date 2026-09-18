@@ -51,6 +51,13 @@ function handleFileSelected(e){
   const file = e.target.files[0];
   if(!file) return;
 
+  const MAX_SIZE = 5 * 1024 * 1024; // 5 Mo — largement suffisant pour un relevé Uber, evite de geler le navigateur
+  if(file.size > MAX_SIZE){
+    alert(`Fichier trop volumineux (${(file.size/1024/1024).toFixed(1)} Mo). Limite : 5 Mo. Sépare le relevé en plusieurs fichiers plus courts si besoin.`);
+    e.target.value = '';
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = (ev) => {
     const parsed = Papa.parse(ev.target.result, { header: true, skipEmptyLines: true });
@@ -251,8 +258,8 @@ async function confirmImport(){
   const nouvelles = csvAnalysis.rows.filter(r => r.statut === 'nouvelle').map(r => ({
     created_by: r.profil.id,
     prix: r.montant,
-    distance: isNaN(r.distance) ? 0.01 : (r.distance || 0.01),
-    euro_km: r.distance ? +(r.montant / r.distance).toFixed(2) : null,
+    distance: (isNaN(r.distance) || !r.distance) ? null : r.distance,
+    euro_km: (r.distance && !isNaN(r.distance)) ? +(r.montant / r.distance).toFixed(2) : null,
     decision: null,
     statut: 'validee',
     source: 'import_csv',

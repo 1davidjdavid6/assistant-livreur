@@ -74,7 +74,14 @@ function renderUsersSection(){
         .eq('id', userId);
       btn.disabled = false;
       btn.textContent = 'Enregistrer';
-      if(error){ alert('Erreur : ' + error.message); return; }
+      if(error){
+        if(error.code === '23505'){
+          alert('Cet identifiant Uber est déjà utilisé par un autre livreur. Chaque identifiant doit être unique.');
+        } else {
+          alert('Erreur : ' + error.message);
+        }
+        return;
+      }
       const p = allProfiles.find(x => x.id === userId);
       if(p) p.uber_identifiant = input.value.trim() || null;
     });
